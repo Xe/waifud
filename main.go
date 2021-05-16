@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"bytes"
 	crand "crypto/rand"
+	"crypto/sha256"
 	"embed"
+	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -133,6 +135,26 @@ func main() {
 
 		fout.Close()
 		resp.Body.Close()
+
+		fin, err := os.Open(qcowPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		hasher := sha256.New()
+		if _, err := io.Copy(hasher, fin); err != nil {
+			log.Fatal(err)
+		}
+		hash := hex.EncodeToString(hasher.Sum(nil))
+
+		if hash != resultDistro.Sha256Sum {
+			log.Println("hash mismatch, someone is doing something nasty")
+			log.Printf("want: %s", resultDistro.Sha256Sum)
+			log.Printf("got: %s", resultDistro.Sha256Sum)
+			os.Exit(1)
+		}
+
+		log.Printf("hash check passed (%s)", resultDistro.Sha256Sum)
 	}
 
 	tmpl := template.Must(template.ParseFS(data, "templates/*"))
