@@ -89,6 +89,14 @@ in  [ Distro::{
       , minSize = 10
       }
     , Distro::{
+      , name = "opensuse-tumbleweed"
+      , downloadURL =
+          "https://download.opensuse.org/tumbleweed/appliances/openSUSE-Tumbleweed-JeOS.x86_64-OpenStack-Cloud.qcow2"
+      , sha256Sum =
+          "e50635b742667009a0e4c067c96d6c403099034883447e7b0f0e8dfebdf40823"
+      , minSize = 5
+      }
+    , Distro::{
       , name = "ubuntu-16.04"
       , downloadURL =
           "https://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-disk1.img"
@@ -102,6 +110,14 @@ in  [ Distro::{
           "https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img"
       , sha256Sum =
           "bea55c09dde0d5c2dbac8a73c2ce4b93061264ba9c354d67939ae0e259d32906"
+      , minSize = 5
+      }
+    , Distro::{
+      , name = "ubuntu-19.10"
+      , downloadURL =
+          "https://cloud-images.ubuntu.com/minimal/releases/eoan/release/ubuntu-19.10-minimal-cloudimg-amd64.img"
+      , sha256Sum =
+          "353210cc23889712489814d56761751f13c6eac07eb64fd014dca5aec85c7876"
       , minSize = 5
       }
     , Distro::{
