@@ -1,4 +1,4 @@
-<domain type="kvm">
+<domain type="kvm" xmlns:qemu='http://libvirt.org/schemas/domain/qemu/1.0'>
   <name>{{.Name}}</name>
   <uuid>{{.UUID}}</uuid>
   <metadata>
@@ -68,4 +68,8 @@
       <backend model="random">/dev/urandom</backend>
     </rng>
   </devices>
+  <qemu:commandline>
+    <qemu:arg value="-smbios" />
+    <qemu:arg value="type=1,serial=ds=nocloud;h={{.Name}}" />
+  </qemu:commandline>
 </domain>

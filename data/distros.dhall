@@ -144,4 +144,10 @@ in  [ Distro::{
           "2f8a562637340a026f712594f1257673543d74725d8e3daf88d533d7b8bf448f"
       , minSize = 5
       }
+    , Distro::{
+      , name = "windows-server-2012-r2"
+      , downloadURL = "http://localhost:42069/windows2012r2.qcow2"
+      , sha256Sum = "xxxfakewindowsserver2012r2"
+      , minSize = 13
+      }
     ]
