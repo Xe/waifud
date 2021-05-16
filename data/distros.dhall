@@ -101,7 +101,7 @@ in  [ Distro::{
       , downloadURL =
           "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.2/images/openSUSE-Leap-15.2-OpenStack.x86_64.qcow2"
       , sha256Sum =
-          "bd3c251ca52f9cf2ee0820258d75fd6d71502447eb0c7ae2592dc9a83ad7a0a1"
+          "a293bf8ca21d4a8c2c146f2c42327ad27032afc2e15f61e0f5c05be46613e991"
       , minSize = 10
       }
     , Distro::{
