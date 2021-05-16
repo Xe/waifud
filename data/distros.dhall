@@ -115,9 +115,9 @@ in  [ Distro::{
     , Distro::{
       , name = "ubuntu-19.10"
       , downloadURL =
-          "https://cloud-images.ubuntu.com/minimal/releases/eoan/release/ubuntu-19.10-minimal-cloudimg-amd64.img"
+          "https://cloud-images.ubuntu.com/releases/eoan/release/ubuntu-19.10-server-cloudimg-amd64.img"
       , sha256Sum =
-          "353210cc23889712489814d56761751f13c6eac07eb64fd014dca5aec85c7876"
+          "f0b499f0a7c8b5ca90ad12aa0b11a3643d5d272de02fabfd799eecb6227ec456"
       , minSize = 5
       }
     , Distro::{
