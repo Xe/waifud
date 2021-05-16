@@ -32,7 +32,7 @@ var (
 	distro      = flag.String("distro", "alpine-edge", "the linux distro to install in the VM")
 	name        = flag.String("name", "", "the name of the VM, defaults to a random common blade name")
 	zvolPrefix  = flag.String("zvol-prefix", "rpool/mkvm-test/", "the prefix to use for zvol names")
-	zvolSize    = flag.Int("zvol-size", 0, "the number of gigabytes for the virtual machine disk")
+	zvolSize    = flag.Int("zvol-size", 25, "the number of gigabytes for the virtual machine disk")
 	memory      = flag.Int("memory", 512, "the number of megabytes of ram for the virtual machine")
 	cloudConfig = flag.String("user-data", "./var/xe-base.yaml", "path to a cloud-config userdata file")
 )
