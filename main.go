@@ -37,6 +37,7 @@ var (
 	zvolSize    = flag.Int("zvol-size", 25, "the number of gigabytes for the virtual machine disk")
 	memory      = flag.Int("memory", 512, "the number of megabytes of ram for the virtual machine")
 	cloudConfig = flag.String("user-data", "./var/xe-base.yaml", "path to a cloud-config userdata file")
+	useSATA     = flag.Bool("use-sata", false, "use SATA for the VM's disk interface? (needed if using freebsd-12)")
 )
 
 func main() {
@@ -99,9 +100,12 @@ func main() {
 	log.Printf("ram: %d MB", *memory)
 	log.Printf("id: %s", vmID)
 	log.Printf("cloud config: %s", *cloudConfig)
+	if *useSATA {
+		log.Println("using SATA for the VM disk interface")
+	}
 
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("press enter if this looks okay:")
+	fmt.Print("press enter if this looks okay: ")
 	reader.ReadString('\n')
 
 	cdir, err := os.UserCacheDir()
@@ -149,8 +153,8 @@ func main() {
 
 		if hash != resultDistro.Sha256Sum {
 			log.Println("hash mismatch, someone is doing something nasty")
-			log.Printf("want: %s", resultDistro.Sha256Sum)
-			log.Printf("got: %s", resultDistro.Sha256Sum)
+			log.Printf("want: %q", resultDistro.Sha256Sum)
+			log.Printf("got:  %q", hash)
 			os.Exit(1)
 		}
 
@@ -228,6 +232,7 @@ func main() {
 		ZVol       string
 		Seed       string
 		MACAddress string
+		SATA       bool
 	}{
 		Name:       *name,
 		UUID:       vmID,
@@ -235,6 +240,7 @@ func main() {
 		ZVol:       zvol,
 		Seed:       isoPath,
 		MACAddress: macAddress,
+		SATA:       *useSATA,
 	})
 	if err != nil {
 		log.Fatalf("can't generate VM template: %v", err)

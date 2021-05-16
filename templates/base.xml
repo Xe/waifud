@@ -36,19 +36,32 @@
     <disk type="block" device="disk">
       <driver name="qemu" type="raw" cache="none" io="native"/>
       <source dev="/dev/zvol/{{.ZVol}}"/>
+      {{if .SATA}}
+      <target dev="sda" bus="sata"/>
+      {{else}}
       <target dev="vda" bus="virtio"/>
+      {{end}}
     </disk>
     <disk type="file" device="cdrom">
       <driver name="qemu" type="raw"/>
       <source file="{{.Seed}}"/>
+      {{if .SATA}}
+      <target dev="sdb" bus="sata"/>
+      {{else}}
       <target dev="sda" bus="sata"/>
+      {{end}}
       <readonly/>
     </disk>
     <controller type="usb" model="qemu-xhci" ports="15"/>
     <interface type="network">
       <source network="default"/>
       <mac address="{{.MACAddress}}"/>
+      {{if .SATA}}
+      <model type="e1000e"/>
+      <address type="pci" domain="0x0000" bus="0x01" slot="0x00" function="0x0"/>
+      {{else}}
       <model type="virtio"/>
+      {{end}}
     </interface>
     <console type="pty"/>
     <channel type="unix">
