@@ -65,6 +65,14 @@ in  [ Distro::{
       , minSize = 2
       }
     , Distro::{
+      , name = "debian-11"
+      , downloadURL =
+          "https://cdimage.debian.org/images/cloud/bullseye/daily/20210515-638/debian-11-generic-amd64-daily-20210515-638.qcow2"
+      , sha256Sum =
+          "0e77c13bd5f15759916d1e60e4925d8a3307bcd80af373fa929cdf419b602694"
+      , minSize = 2
+      }
+    , Distro::{
       , name = "fedora-34"
       , downloadURL =
           "https://download.fedoraproject.org/pub/fedora/linux/releases/34/Cloud/x86_64/images/Fedora-Cloud-Base-34-1.2.x86_64.qcow2"
