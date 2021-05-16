@@ -73,6 +73,22 @@ in  [ Distro::{
       , minSize = 5
       }
     , Distro::{
+      , name = "freebsd-12"
+      , downloadURL =
+          "https://object-storage.public.mtl1.vexxhost.net/swift/v1/1dbafeefbd4f4c80864414a441e72dd2/bsd-cloud-image.org/images/freebsd/12.2/freebsd-12.2.qcow2"
+      , sha256Sum =
+          "3c7c7fafe5c389b9295dcaab7a71c47cc30ad6e79e3a0c9cb164933ad2fb9814"
+      , minSize = 3
+      }
+    , Distro::{
+      , name = "freebsd-13"
+      , downloadURL =
+          "https://object-storage.public.mtl1.vexxhost.net/swift/v1/1dbafeefbd4f4c80864414a441e72dd2/bsd-cloud-image.org/images/freebsd/13.0/freebsd-13.0.qcow2"
+      , sha256Sum =
+          "f7d16fb927f836f94cda37955314506e8507476d0b2d985acf572f1c7ce90e6a"
+      , minSize = 3
+      }
+    , Distro::{
       , name = "opensuse-leap-15.1"
       , downloadURL =
           "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.2/images/openSUSE-Leap-15.2-OpenStack.x86_64.qcow2"
