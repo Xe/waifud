@@ -1,6 +1,3 @@
--- meta-data --
-local-hostname: {{.Name}}
--- user-data --
 #cloud-config
 #vim:syntax=yaml
 

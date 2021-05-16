@@ -23,18 +23,18 @@ import (
 	"github.com/digitalocean/go-libvirt"
 	"github.com/google/uuid"
 	"github.com/philandstuff/dhall-golang/v5"
-	"golang.org/x/tools/txtar"
 )
 
 //go:embed data/* templates/*
 var data embed.FS
 
 var (
-	distro     = flag.String("distro", "alpine-edge", "the linux distro to install in the VM")
-	name       = flag.String("name", "", "the name of the VM, defaults to a random common blade name")
-	zvolPrefix = flag.String("zvol-prefix", "rpool/mkvm-test/", "the prefix to use for zvol names")
-	zvolSize   = flag.Int("zvol-size", 0, "the number of gigabytes for the virtual machine disk")
-	memory     = flag.Int("memory", 512, "the number of megabytes of ram for the virtual machine")
+	distro      = flag.String("distro", "alpine-edge", "the linux distro to install in the VM")
+	name        = flag.String("name", "", "the name of the VM, defaults to a random common blade name")
+	zvolPrefix  = flag.String("zvol-prefix", "rpool/mkvm-test/", "the prefix to use for zvol names")
+	zvolSize    = flag.Int("zvol-size", 0, "the number of gigabytes for the virtual machine disk")
+	memory      = flag.Int("memory", 512, "the number of megabytes of ram for the virtual machine")
+	cloudConfig = flag.String("user-data", "./var/xe-base.yaml", "path to a cloud-config userdata file")
 )
 
 func main() {
@@ -87,12 +87,16 @@ func main() {
 		log.Fatalf("can't connect to libvirt: %v", err)
 	}
 
+	vmID := uuid.New().String()
+
 	log.Println("plan:")
 	log.Printf("name: %s", *name)
 	log.Printf("zvol: %s (%d GB)", zvol, *zvolSize)
 	log.Printf("base image url: %s", resultDistro.DownloadURL)
 	log.Printf("mac address: %s", macAddress)
 	log.Printf("ram: %d MB", *memory)
+	log.Printf("id: %s", vmID)
+	log.Printf("cloud config: %s", *cloudConfig)
 
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("press enter if this looks okay:")
@@ -133,29 +137,38 @@ func main() {
 
 	tmpl := template.Must(template.ParseFS(data, "templates/*"))
 	var buf = bytes.NewBuffer(nil)
-	err = tmpl.ExecuteTemplate(buf, "cloud-config.txtar", struct{ Name string }{Name: *name})
+	err = tmpl.ExecuteTemplate(buf, "meta-data", struct {
+		Name string
+		ID   string
+	}{
+		Name: *name,
+		ID:   vmID,
+	})
 	if err != nil {
 		log.Fatalf("can't generate cloud-config: %v", err)
 	}
 
-	arc := txtar.Parse(buf.Bytes())
 	dir, err := os.MkdirTemp("", "mkvm")
 	if err != nil {
 		log.Fatalf("can't make directory: %v", err)
 	}
 
-	for _, file := range arc.Files {
-		fout, err := os.Create(filepath.Join(dir, file.Name))
-		if err != nil {
-			log.Fatal(err)
-		}
-		_, err = fout.Write(file.Data)
-		if err != nil {
-			log.Fatal(err)
-		}
+	fout, err := os.Create(filepath.Join(dir, "meta-data"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = fout.Write(buf.Bytes())
+	if err != nil {
+		log.Fatal(err)
+	}
+	fout.Close()
+
+	err = run("cp", *cloudConfig, filepath.Join(dir, "user-data"))
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	isoPath := filepath.Join(cdir, "seed", fmt.Sprintf("%s-%s.iso", *name, resultDistro.Name))
+	isoPath := filepath.Join(cdir, "seed", fmt.Sprintf("%s-%s.iso", *name, vmID))
 
 	err = run(
 		"genisoimage",
@@ -173,7 +186,6 @@ func main() {
 	}
 
 	ram := *memory * 1024
-	vmID := uuid.New().String()
 	buf.Reset()
 
 	// zfs create -V 20G rpool/safe/vm/sena
@@ -274,7 +286,11 @@ func connectToLibvirt() (*libvirt.Libvirt, error) {
 }
 
 func mkVM(l *libvirt.Libvirt, buf *bytes.Buffer) (*libvirt.Domain, error) {
-	domain, err := l.DomainCreateXML(buf.String(), libvirt.DomainNone)
+	domain, err := l.DomainDefineXML(buf.String())
+	if err != nil {
+		return nil, err
+	}
+	err = l.DomainCreate(domain)
 	return &domain, err
 }
 
