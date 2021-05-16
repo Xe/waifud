@@ -11,9 +11,9 @@ let Distro =
 in  [ Distro::{
       , name = "alpine-edge"
       , downloadURL =
-          "https://xena.greedo.xeserv.us/pkg/alpine/img/alpine-edge-2021-05-15-cloud-init-within.qcow2"
+          "https://xena.greedo.xeserv.us/pkg/alpine/img/alpine-edge-2021-05-16-cloud-init-within.qcow2"
       , sha256Sum =
-          "c0ed716b9bd3dd45959496af4177935b0c491153c41d5d5e33eaf132bcc130c6"
+          "8ba9be1f9b8b65c8250f48269eec42a56a05fdd0fa416a9848850646d82ee054"
       , minSize = 10
       }
     , Distro::{
