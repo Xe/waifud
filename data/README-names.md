@@ -44,3 +44,17 @@ Array.from(document.getElementsByClassName("listofponies")[0]
 });
 console.log(JSON.stringify(names));
 ```
+
+Combine all of the files like this:
+
+```console
+$ jq -n '[inputs] | add' \
+    names-blades.json \
+    names-ponies-earth.json \
+    names-ponies-pegasus.json \
+    names-ponies-unicorn.json\
+  | jq -r '.[]' \
+  | sort \
+  | uniq \
+  | jq -nR '[inputs | select(length>0)]' > names.json
+```
