@@ -9,12 +9,20 @@ let Distro =
       }
 
 in  [ Distro::{
+      , name = "alpine-3.13"
+      , downloadURL =
+          "https://xena.greedo.xeserv.us/pkg/alpine/img/alpine-3.13.5-cloud-init-within.qcow2"
+      , sha256Sum =
+          "a2665c16724e75899723e81d81126bd0254a876e5de286b0b21553734baec287"
+      , minSize = 2
+      }
+    , Distro::{
       , name = "alpine-edge"
       , downloadURL =
-          "https://xena.greedo.xeserv.us/pkg/alpine/img/alpine-edge-2021-05-16-cloud-init-within.qcow2"
+          "https://xena.greedo.xeserv.us/pkg/alpine/img/alpine-edge-2021-05-18-cloud-init-within.qcow2"
       , sha256Sum =
-          "8ba9be1f9b8b65c8250f48269eec42a56a05fdd0fa416a9848850646d82ee054"
-      , minSize = 10
+          "b3bb15311c0bd3beffa1b554f022b75d3b7309b5fdf76fb146fe7c72b83b16d0"
+      , minSize = 2
       }
     , Distro::{
       , name = "amazon-linux"

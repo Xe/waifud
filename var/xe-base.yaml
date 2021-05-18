@@ -10,12 +10,11 @@ cloud_final_modules:
 
 users:
   - name: xe
-    plain_text_passwd: hunter2
     groups: [ wheel ]
     sudo: [ "ALL=(ALL) NOPASSWD:ALL" ]
     shell: /bin/bash
     ssh-authorized-keys: 
-    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPg9gYKVglnO2HQodSJt4z4mNrUSUiyJQ7b+J798bwD9 cadey@shachi
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPg9gYKVglnO2HQodSJt4z4mNrUSUiyJQ7b+J798bwD9 cadey@shachi
 
 write_files:
   - path: /etc/cloud/cloud.cfg.d/80_disable_network_after_firstboot.cfg
