@@ -132,6 +132,13 @@ func main() {
 	fmt.Print("press enter if this looks okay: ")
 	reader.ReadString('\n')
 
+	if *distro == "nixos" {
+		_, err := mkNixOSImage(*cloudConfig, cdir, vmID)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	_, err = os.Stat(qcowPath)
 	if err != nil {
 		log.Printf("downloading distro image %s to %s", resultDistro.DownloadURL, qcowPath)
