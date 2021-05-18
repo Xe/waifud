@@ -125,7 +125,7 @@ in  [ Distro::{
       , downloadURL =
           "https://download.opensuse.org/tumbleweed/appliances/openSUSE-Tumbleweed-JeOS.x86_64-OpenStack-Cloud.qcow2"
       , sha256Sum =
-          "e50635b742667009a0e4c067c96d6c403099034883447e7b0f0e8dfebdf40823"
+          "8bc3aafa7bfb6b7ab0f69a40dea05827b13faca4169b755af44edfeed3742372"
       , minSize = 5
       }
     , Distro::{
