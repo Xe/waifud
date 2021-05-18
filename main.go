@@ -217,6 +217,13 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+	} else {
+		fout, err := os.Create(filepath.Join(dir, "user-data"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Fprintln(fout, "#cloud-config")
+		fout.Close()
 	}
 
 	isoPath := filepath.Join(cdir, "seed", fmt.Sprintf("%s-%s.iso", *name, vmID))
