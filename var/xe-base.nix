@@ -21,4 +21,8 @@
   services.openssh.enable = true;
 
   security.sudo.wheelNeedsPassword = false;
+  services.cloud-init = {
+    enable = true;
+    ext4.enable = true;
+  };
 }
