@@ -44,6 +44,16 @@ func main() {
 	rand.Seed(time.Now().Unix())
 	flag.Parse()
 
+	cdir, err := os.UserCacheDir()
+	if err != nil {
+		log.Fatalf("can't find cache dir: %v", err)
+	}
+	cdir = filepath.Join(cdir, "within", "mkvm")
+	os.MkdirAll(filepath.Join(cdir, "nixos"), 0755)
+	os.MkdirAll(filepath.Join(cdir, "qcow2"), 0755)
+	os.MkdirAll(filepath.Join(cdir, "seed"), 0755)
+	vmID := uuid.New().String()
+
 	if *name == "" {
 		commonBladeName, err := getName()
 		if err != nil {
@@ -59,6 +69,18 @@ func main() {
 
 	var resultDistro Distro
 	var found bool
+	qcowPath := filepath.Join(cdir, "nixos", vmID, "nixos.qcow2")
+
+	if *distro == "nixos" {
+		found = true
+		resultDistro = Distro{
+			Name:        "nixos",
+			DownloadURL: "file://" + qcowPath,
+			Sha256Sum:   "<computed after build>",
+			MinSize:     8,
+		}
+	}
+
 	for _, d := range distros {
 		if d.Name == *distro {
 			found = true
@@ -78,7 +100,11 @@ func main() {
 		}
 		os.Exit(1)
 	}
+
 	zvol := filepath.Join(*zvolPrefix, *name)
+	if resultDistro.Name != "nixos" {
+		qcowPath = filepath.Join(cdir, "qcow2", resultDistro.Sha256Sum)
+	}
 
 	macAddress, err := randomMac()
 	if err != nil {
@@ -89,8 +115,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("can't connect to libvirt: %v", err)
 	}
-
-	vmID := uuid.New().String()
 
 	log.Println("plan:")
 	log.Printf("name: %s", *name)
@@ -108,14 +132,13 @@ func main() {
 	fmt.Print("press enter if this looks okay: ")
 	reader.ReadString('\n')
 
-	cdir, err := os.UserCacheDir()
-	if err != nil {
-		log.Fatalf("can't find cache dir: %v", err)
+	if *distro == "nixos" {
+		_, err := mkNixOSImage(*cloudConfig, cdir, vmID)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
-	cdir = filepath.Join(cdir, "within", "mkvm")
-	os.MkdirAll(filepath.Join(cdir, "qcow2"), 0755)
-	os.MkdirAll(filepath.Join(cdir, "seed"), 0755)
-	qcowPath := filepath.Join(cdir, "qcow2", resultDistro.Sha256Sum)
+
 	_, err = os.Stat(qcowPath)
 	if err != nil {
 		log.Printf("downloading distro image %s to %s", resultDistro.DownloadURL, qcowPath)
@@ -189,9 +212,18 @@ func main() {
 	}
 	fout.Close()
 
-	err = run("cp", *cloudConfig, filepath.Join(dir, "user-data"))
-	if err != nil {
-		log.Fatal(err)
+	if *distro != "nixos" {
+		err = run("cp", *cloudConfig, filepath.Join(dir, "user-data"))
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		fout, err := os.Create(filepath.Join(dir, "user-data"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Fprintln(fout, "#cloud-config")
+		fout.Close()
 	}
 
 	isoPath := filepath.Join(cdir, "seed", fmt.Sprintf("%s-%s.iso", *name, vmID))
