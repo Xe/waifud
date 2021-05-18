@@ -4,7 +4,7 @@ import "path/filepath"
 
 func mkNixOSImage(configFname, cacheDir, vmID string) (string, error) {
 	outputFname := filepath.Join(cacheDir, "nixos", vmID+".qcow2")
-	err := run("nix-shell", "-p", "nixos-generators", "--run", "nixos-generate -f qcow -o "+outputFname+" -c "+configFname)
+	err := run("nix-shell", "-p", "nixos-generators", "--run", "nixos-generate -f openstack -o "+outputFname+" -c "+configFname)
 	if err != nil {
 		return "", err
 	}
