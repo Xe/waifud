@@ -257,6 +257,11 @@ func main() {
 		log.Fatalf("can't import qcow2: %v", err)
 	}
 
+	err = run("sudo", "zfs", "snapshot", zvol+"@init")
+	if err != nil {
+		log.Fatalf("can't make a base snapshot: %v", err)
+	}
+
 	err = tmpl.ExecuteTemplate(buf, "base.xml", struct {
 		Name       string
 		UUID       string
