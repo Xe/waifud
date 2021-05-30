@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/digitalocean/go-libvirt v0.0.0-20210513152157-a898af65b5cc
+	github.com/facebookgo/flagenv v0.0.0-20160425205200-fcd59fca7456 // indirect
 	github.com/go-redis/redis/v8 v8.8.3 // indirect
 	github.com/google/uuid v1.2.0
 	github.com/philandstuff/dhall-golang/v5 v5.0.0

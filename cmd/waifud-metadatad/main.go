@@ -11,20 +11,24 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
 
 	"github.com/Xe/waifud/key2hex"
+	"github.com/facebookgo/flagenv"
 	"github.com/go-redis/redis/v8"
 	"golang.zx2c4.com/wireguard/conn"
 	"golang.zx2c4.com/wireguard/device"
 	"golang.zx2c4.com/wireguard/tun/netstack"
 	"within.website/ln"
+	"within.website/ln/opname"
 )
 
 var (
+	redisURL          = flag.String("redis-url", "redis://chrysalis", "the url to dial out to Redis")
 	wgPort            = flag.Int("wireguard-sever-port", 28139, "what port to have the kernel listen on wireguard")
 	wgHostAddr        = flag.String("wireguard-host-addr", "169.254.169.253/30", "what IP range to have for the metadata service")
 	wgGuestAddr       = flag.String("wireguard-guest-addr", "169.254.169.254", "the IP address for the metadata service")
@@ -34,6 +38,40 @@ var (
 	wgGuestPrivateKey = flag.String("wireguard-guest-private-key", "./var/waifud-guest.privkey", "wireguard guest private key path (b64)")
 	wgGuestPubkey     = flag.String("wireguard-guest-public-key", "./var/waifud-guest.pubkey", "wireguard guest public key path (b64)")
 )
+
+func main() {
+	flagenv.Parse()
+	flag.Parse()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	ctx = opname.With(ctx, "main")
+
+	rOptions, err := redis.ParseURL(*redisURL)
+	if err != nil {
+		ln.FatalErr(ctx, err, ln.Action("parsing redis url"))
+	}
+
+	rdb := redis.NewClient(rOptions)
+	defer rdb.Close()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	defer func() {
+		signal.Stop(c)
+		cancel()
+	}()
+
+	ms := metadataServer{cli: rdb}
+	go ms.Run(ctx)
+
+	select {
+	case <-c:
+		cancel()
+	case <-ctx.Done():
+	}
+}
 
 func run(args ...string) error {
 	log.Println("running command:", strings.Join(args, " "))
@@ -87,7 +125,7 @@ func (ms metadataServer) listen(ctx context.Context) error {
 	}()
 
 	mux := http.NewServeMux()
-	mux.Handle("/metadata/", ms)
+	mux.Handle("/instance/", ms)
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "waifud metadata service - https://github.com/Xe/waifud")
 	})

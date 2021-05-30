@@ -3,7 +3,10 @@ package main
 import (
 	"context"
 	"flag"
+	"os"
+	"os/signal"
 
+	"github.com/facebookgo/flagenv"
 	"github.com/go-redis/redis/v8"
 	"within.website/ln"
 	"within.website/ln/opname"
@@ -17,12 +20,27 @@ var (
 )
 
 func main() {
+	flagenv.Parse()
 	flag.Parse()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	ctx = opname.With(ctx, "main")
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	defer func() {
+		signal.Stop(c)
+		cancel()
+	}()
+	go func() {
+		select {
+		case <-c:
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
 
 	rOptions, err := redis.ParseURL(*redisURL)
 	if err != nil {
@@ -31,14 +49,4 @@ func main() {
 
 	rdb := redis.NewClient(rOptions)
 	defer rdb.Close()
-
-	err = rdb.Set(ctx, "fa3d4df4-2f3e-45f7-a2c9-c006f406b68a/meta-data", `instance-id: fa3d4df4-2f3e-45f7-a2c9-c006f406b68a
-local-hostname: ezscape`, 0).Err()
-	if err != nil {
-		ln.FatalErr(ctx, err)
-	}
-
-	ms := metadataServer{rdb}
-
-	ln.FatalErr(ctx, ms.listen(ctx))
 }
