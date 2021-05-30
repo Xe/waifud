@@ -5,7 +5,6 @@ import (
 	"bytes"
 	crand "crypto/rand"
 	"crypto/sha256"
-	"embed"
 	"encoding/hex"
 	"encoding/json"
 	"flag"
@@ -22,13 +21,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Xe/waifud/data"
+	"github.com/Xe/waifud/templates"
 	"github.com/digitalocean/go-libvirt"
 	"github.com/google/uuid"
 	"github.com/philandstuff/dhall-golang/v5"
 )
-
-//go:embed data/* templates/*
-var data embed.FS
 
 var (
 	distro      = flag.String("distro", "alpine-edge", "the linux distro to install in the VM")
@@ -184,7 +182,7 @@ func main() {
 		log.Printf("hash check passed (%s)", resultDistro.Sha256Sum)
 	}
 
-	tmpl := template.Must(template.ParseFS(data, "templates/*"))
+	tmpl := template.Must(template.ParseFS(templates.FS, "*"))
 	var buf = bytes.NewBuffer(nil)
 	err = tmpl.ExecuteTemplate(buf, "meta-data", struct {
 		Name string
@@ -309,7 +307,7 @@ func randomMac() (string, error) {
 
 func getName() (string, error) {
 	var names []string
-	nameData, err := data.ReadFile("data/names.json")
+	nameData, err := data.FS.ReadFile("names.json")
 	if err != nil {
 		return "", err
 	}
@@ -367,7 +365,7 @@ type Distro struct {
 }
 
 func getDistros() ([]Distro, error) {
-	distroData, err := data.ReadFile("data/distros.dhall")
+	distroData, err := data.FS.ReadFile("distros.dhall")
 	if err != nil {
 		return nil, err
 	}

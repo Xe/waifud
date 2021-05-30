@@ -1,4 +1,4 @@
-module github.com/Xe/mkvm
+module github.com/Xe/waifud
 
 go 1.16
 
@@ -8,5 +8,7 @@ require (
 	github.com/google/uuid v1.2.0
 	github.com/philandstuff/dhall-golang/v5 v5.0.0
 	golang.org/x/tools v0.1.1
+	golang.zx2c4.com/wireguard v0.0.0-20210525143454-64cb82f2b3f5 // indirect
+	golang.zx2c4.com/wireguard/tun/netstack v0.0.0-20210525143454-64cb82f2b3f5 // indirect
 	within.website/ln v0.9.1 // indirect
 )
