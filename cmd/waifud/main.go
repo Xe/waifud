@@ -13,7 +13,7 @@ var (
 	network    = flag.String("network", "tcp", "network protocol to bind the local HTTP server on")
 	bind       = flag.String("bind", "127.0.0.1:39294", "thing to bind the local HTTP server on")
 	zvolPrefix = flag.String("zvol-prefix", "rpool/waifud", "the prefix to use for zvol names")
-	redisURL   = flag.String("redis-url", "redis://127.0.0.1", "the url to dial out to Redis")
+	redisURL   = flag.String("redis-url", "redis://chrysalis", "the url to dial out to Redis")
 )
 
 func main() {
