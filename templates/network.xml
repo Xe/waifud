@@ -1,0 +1,19 @@
+<network>
+    <name>{{.Name}}</name>
+    <uuid>{{.UUID}}</uuid>
+    <forward mode="nat">
+        <nat>
+            <port start="1024" end="65535"/>
+        </nat>
+    </forward>
+    <bridge name="{{.Iface}}" stp="on" delay="0"/>
+    <mac address="{{.MACAddress}}"/>
+    <domain name="{{.SearchDomain}}"/>
+    <ip address="{{.IPv4Net}}" netmask="{{.IPv4Mask}}">
+        <dhcp>
+            <range start="{{.IPv4DHCPStart}}" end="{{.IPv4DHCPEnd}}"/>
+        </dhcp>
+    </ip>
+    <ip family="ipv6" address="{{.IPv6Net}}" prefix="64">
+    </ip>
+</network>

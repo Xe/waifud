@@ -45,11 +45,7 @@
     <disk type="file" device="cdrom">
       <driver name="qemu" type="raw"/>
       <source file="{{.Seed}}"/>
-      {{if .SATA}}
       <target dev="sdb" bus="sata"/>
-      {{else}}
-      <target dev="sda" bus="sata"/>
-      {{end}}
       <readonly/>
     </disk>
     <controller type="usb" model="qemu-xhci" ports="15"/>
