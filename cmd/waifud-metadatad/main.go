@@ -29,7 +29,7 @@ import (
 
 var (
 	redisURL          = flag.String("redis-url", "redis://chrysalis", "the url to dial out to Redis")
-	wgPort            = flag.Int("wireguard-sever-port", 28139, "what port to have the kernel listen on wireguard")
+	wgPort            = flag.Int("wireguard-host-port", 28139, "what port to have the kernel listen on wireguard")
 	wgHostAddr        = flag.String("wireguard-host-addr", "169.254.169.253/30", "what IP range to have for the metadata service")
 	wgGuestAddr       = flag.String("wireguard-guest-addr", "169.254.169.254", "the IP address for the metadata service")
 	wgInterfaceName   = flag.String("wireguard-interface-name", "waifud-metadata", "the wireguard interface for the metadata service")
