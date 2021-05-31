@@ -121,6 +121,14 @@ in  [ Distro::{
       , minSize = 10
       }
     , Distro::{
+      , name = "opensuse-leap-15.3"
+      , downloadURL =
+          "http://mirror.its.dal.ca/opensuse/distribution/leap/15.3/appliances/openSUSE-Leap-15.3-JeOS.x86_64-OpenStack-Cloud.qcow2"
+      , sha256Sum =
+          "22e0392e4d0becb523d1bc5f709366140b7ee20d6faf26de3d0f9046d1ee15d5"
+      , minSize = 5
+      }
+    , Distro::{
       , name = "opensuse-tumbleweed"
       , downloadURL =
           "https://download.opensuse.org/tumbleweed/appliances/openSUSE-Tumbleweed-JeOS.x86_64-OpenStack-Cloud.qcow2"
