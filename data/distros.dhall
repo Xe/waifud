@@ -35,7 +35,7 @@ in  [ Distro::{
     , Distro::{
       , name = "arch"
       , downloadURL =
-          "https://mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg-20210515.22945.qcow2"
+          "https://mirror.pkgbuild.com/images/v20210515.22945/Arch-Linux-x86_64-cloudimg-20210515.22945.qcow2"
       , sha256Sum =
           "e4077f5ba3c5d545478f64834bc4852f9f7a2e05950fce8ecd0df84193162a27"
       , minSize = 2
@@ -43,9 +43,9 @@ in  [ Distro::{
     , Distro::{
       , name = "centos-7"
       , downloadURL =
-          "https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2"
+          "https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-2009.qcow2c"
       , sha256Sum =
-          "1db30c9c272fb37b00111b93dcebff16c278384755bdbe158559e9c240b73b80"
+          "7ba4513d96591496213a07bbe25e3eb643d61491924c8548a91815b420fd9827"
       , minSize = 8
       }
     , Distro::{
@@ -139,7 +139,7 @@ in  [ Distro::{
     , Distro::{
       , name = "ubuntu-16.04"
       , downloadURL =
-          "https://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-disk1.img"
+          "https://cloud-images.ubuntu.com/xenial/20210429/xenial-server-cloudimg-amd64-disk1.img"
       , sha256Sum =
           "50a21bc067c05e0c73bf5d8727ab61152340d93073b3dc32eff18b626f7d813b"
       , minSize = 5
@@ -147,9 +147,9 @@ in  [ Distro::{
     , Distro::{
       , name = "ubuntu-18.04"
       , downloadURL =
-          "https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img"
+          "https://cloud-images.ubuntu.com/bionic/20210604/bionic-server-cloudimg-amd64.img"
       , sha256Sum =
-          "bea55c09dde0d5c2dbac8a73c2ce4b93061264ba9c354d67939ae0e259d32906"
+          "50c38d3f7307fe770c15a69b316d0001ac28e484239218d23e1ca8c8e7ec9a10"
       , minSize = 5
       }
     , Distro::{
@@ -163,25 +163,25 @@ in  [ Distro::{
     , Distro::{
       , name = "ubuntu-20.04"
       , downloadURL =
-          "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img"
+          "https://cloud-images.ubuntu.com/focal/20210603/focal-server-cloudimg-amd64.img"
       , sha256Sum =
-          "55e1feee6cbc5fed33505f04dbc2d06124ea06998599e5d3f7a2609b54b439c5"
+          "1c0969323b058ba8b91fec245527069c2f0502fc119b9138b213b6bfebd965cb"
       , minSize = 5
       }
     , Distro::{
       , name = "ubuntu-20.10"
       , downloadURL =
-          "https://cloud-images.ubuntu.com/groovy/current/groovy-server-cloudimg-amd64.img"
+          "https://cloud-images.ubuntu.com/groovy/20210604/groovy-server-cloudimg-amd64.img"
       , sha256Sum =
-          "c1332c24557389a129ff98fa169e34cb53c02555ed702a235e26b8978dd004c3"
+          "2196df5f153faf96443e5502bfdbcaa0baaefbaec614348fec344a241855b0ef"
       , minSize = 5
       }
     , Distro::{
       , name = "ubuntu-21.04"
       , downloadURL =
-          "https://cloud-images.ubuntu.com/hirsute/current/hirsute-server-cloudimg-amd64.img"
+          "https://cloud-images.ubuntu.com/hirsute/20210603/hirsute-server-cloudimg-amd64.img"
       , sha256Sum =
-          "2f8a562637340a026f712594f1257673543d74725d8e3daf88d533d7b8bf448f"
+          "bf07f36fc99ff521d3426e7d257e28f0c81feebc9780b0c4f4e25ae594ff4d3b"
       , minSize = 5
       }
     , Distro::{

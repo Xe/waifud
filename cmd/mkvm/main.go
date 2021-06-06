@@ -173,9 +173,9 @@ func main() {
 		hash := hex.EncodeToString(hasher.Sum(nil))
 
 		if hash != resultDistro.Sha256Sum {
-			log.Println("hash mismatch, someone is doing something nasty")
-			log.Printf("want: %q", resultDistro.Sha256Sum)
-			log.Printf("got:  %q", hash)
+			log.Println("hash mismatch")
+			log.Printf("want: %s", resultDistro.Sha256Sum)
+			log.Printf("got:  %s", hash)
 			os.Exit(1)
 		}
 
