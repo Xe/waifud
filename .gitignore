@@ -1,1 +1,6 @@
 *.qcow2
+
+
+# Added by cargo
+
+/target
