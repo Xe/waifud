@@ -18,9 +18,22 @@ table! {
     }
 }
 
+table! {
+    templates (uuid) {
+        uuid -> Text,
+        name -> Text,
+        distro -> Text,
+        version -> Text,
+        download_url -> Text,
+        sha256sum -> Text,
+        local_url -> Text,
+    }
+}
+
 joinable!(instances -> connections (owner));
 
 allow_tables_to_appear_in_same_query!(
     connections,
     instances,
+    templates,
 );
