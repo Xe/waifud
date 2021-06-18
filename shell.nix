@@ -7,10 +7,13 @@ in pkgs.mkShell {
   buildInputs = with pkgs; [
     # rust
     rustc
+    rustfmt
+    rust-analyzer
     cargo
     cargo-watch
     pkg-config
     sqliteInteractive
+    diesel-cli
 
     # dhall
     dhall
@@ -27,8 +30,10 @@ in pkgs.mkShell {
     redis
   ];
 
-  shellHook = ''
-    ln -s ${gcss}/gruvbox.css ./public/static/gruvbox.css
-    ln -s ${sources.alpinejs} ./public/static/alpine.js
-  '';
+  # shellHook = ''
+  #   rm ./public/static/gruvbox.css
+  #   ln -s ${gcss}/gruvbox.css ./public/static/gruvbox.css
+  #   rm ./public/static/alpine.js
+  #   ln -s ${sources.alpinejs} ./public/static/alpine.js
+  # '';
 }

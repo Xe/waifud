@@ -1,0 +1,24 @@
+@use crate::NetworkConfig;
+
+@(ncfg: NetworkConfig):
+<network>
+    <name>@ncfg.name</name>
+    <uuid>@ncfg.uuid</uuid>
+    <forward mode="nat">
+        <nat>
+            <port start="1024" end="65535"/>
+        </nat>
+    </forward>
+    <bridge name="@ncfg.iface" stp="on" delay="0"/>
+    <mac address="@ncfg.mac_address"/>
+    <domain name="@ncfg.domain"/>
+    <ip address="@(ncfg.ipv4_addr_base).1" netmask="@ncfg.ipv4_mask">
+        <dhcp>
+            <range start="@(ncfg.ipv4_addr_base).2" end="@(ncfg.ipv4_addr_base).254"/>
+        </dhcp>
+    </ip>
+    @if let Some((address, prefix)) = ncfg.ipv6 {
+    <ip family="ipv6" address="@address" prefix="@prefix">
+    </ip>
+    }
+</network>
