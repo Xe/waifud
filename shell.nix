@@ -30,6 +30,8 @@ in pkgs.mkShell {
     redis
   ];
 
+  DATABASE_URL = "./var/waifud.db";
+
   # shellHook = ''
   #   rm ./public/static/gruvbox.css
   #   ln -s ${gcss}/gruvbox.css ./public/static/gruvbox.css
