@@ -1,0 +1,21 @@
+{
+    "alpinejs": {
+        "sha256": "0difknb4p030g5wbhy893wqinx50sc082hw4vy4n3acb33q9q2qw",
+        "type": "file",
+        "url": "https://unpkg.com/alpinejs@3.0.7/dist/cdn.min.js",
+        "url_template": "https://unpkg.com/alpinejs@<version>/dist/cdn.min.js",
+        "version": "3.0.7"
+    },
+    "gruvbox-css": {
+        "branch": "master",
+        "description": "My minimal Gruvbox CSS file I've been keeping multiple places",
+        "homepage": null,
+        "owner": "Xe",
+        "repo": "gruvbox-css",
+        "rev": "0e78b4332ead8635697b990f309608d99b46967e",
+        "sha256": "00n59d5f5k9aq0pd99i0nkrzisanny9nwgzqjc9ijy4y66r9bnvn",
+        "type": "tarball",
+        "url": "https://github.com/Xe/gruvbox-css/archive/0e78b4332ead8635697b990f309608d99b46967e.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    }
+}
