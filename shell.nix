@@ -3,7 +3,7 @@
 let
   sources = import ./nix/sources.nix;
   gcss = pkgs.callPackage sources.gruvbox-css { };
-in pkgs.mkShell {
+in pkgs.mkShell rec {
   buildInputs = with pkgs; [
     # rust
     rustc
@@ -31,11 +31,10 @@ in pkgs.mkShell {
   ];
 
   DATABASE_URL = "./var/waifud.db";
+  ROCKET_DATABASES = ''{ main = { url = "${DATABASE_URL}" } }'';
 
-  # shellHook = ''
-  #   rm ./public/static/gruvbox.css
-  #   ln -s ${gcss}/gruvbox.css ./public/static/gruvbox.css
-  #   rm ./public/static/alpine.js
-  #   ln -s ${sources.alpinejs} ./public/static/alpine.js
-  # '';
+  shellHook = ''
+    ln -s ${gcss}/gruvbox.css ./public/static/gruvbox.css ||:
+    ln -s ${sources.alpinejs} ./public/static/alpine.js ||:
+  '';
 }

@@ -1,4 +1,19 @@
+#[macro_use]
+extern crate diesel;
+#[macro_use]
+extern crate rocket;
+#[macro_use]
+extern crate tracing;
+
+use rocket_sync_db_pools::database;
 use serde::{Deserialize, Serialize};
+
+pub const APPLICATION_NAME: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
+
+pub mod schema;
+
+#[database("main")]
+pub struct MainDatabase(diesel::SqliteConnection);
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NetworkConfig {

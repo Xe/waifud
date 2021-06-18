@@ -1,4 +1,5 @@
-#[macro_use] extern crate rocket;
+use rocket::{fs::FileServer, get, launch, routes};
+use waifud::MainDatabase;
 
 #[get("/")]
 fn hello() -> &'static str {
@@ -7,5 +8,8 @@ fn hello() -> &'static str {
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![hello])
+    rocket::build()
+        .attach(MainDatabase::fairing())
+        .mount("/", routes![hello])
+        .mount("/static", FileServer::from("public"))
 }
