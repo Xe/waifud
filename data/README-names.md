@@ -4,7 +4,7 @@ Open https://xenoblade.github.io/xb2/bdat/common/BLD_NameList.html and paste
 this into the browser inspector:
 
 ```js
-let names = [];
+names = [];
 Array.from(document.getElementsByClassName("sortable")[0].children[1].children)
   .forEach(row => names.push(row.children[2]
     .innerHTML
