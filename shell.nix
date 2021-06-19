@@ -14,6 +14,7 @@ in pkgs.mkShell rec {
     pkg-config
     sqliteInteractive
     diesel-cli
+    libvirt
 
     # dhall
     dhall

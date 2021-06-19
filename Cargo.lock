@@ -21,6 +21,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "anyhow"
+version = "1.0.41"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "15af2628f6890fe2609a3b91bef4c83450512802e59489f9c1cb1fa5df064a61"
+
+[[package]]
 name = "arrayvec"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1883,9 +1889,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5fecdca9a5291cc2b8dcf7dc02453fee791a280f3743cb0905f8822ae463b3fe"
 
 [[package]]
+name = "virt"
+version = "0.2.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "06ce5cd536aa559d1088ddc531bbf3e55edc5db8ec0a5329dfb17f83a5b469ca"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "waifud"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "diesel",
  "diesel_migrations",
  "r2d2_redis",
@@ -1901,6 +1917,7 @@ dependencies = [
  "tracing-log",
  "tracing-subscriber",
  "uuid 0.8.2",
+ "virt",
 ]
 
 [[package]]

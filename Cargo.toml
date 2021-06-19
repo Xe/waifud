@@ -9,6 +9,7 @@ repository = "https://github.com/Xe/waifud"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = "1"
 diesel_migrations = "1"
 r2d2_redis = "0.14.0"
 serde_json = "1"
@@ -17,6 +18,7 @@ tracing-futures = "0.2"
 tracing-log = "0.1"
 tracing-subscriber = "0.2"
 uuid = "0.8"
+virt = "0.2"
 
 [dependencies.diesel]
 version = "1"
