@@ -52,7 +52,8 @@ $ jq -n '[inputs] | add' \
     names-blades.json \
     names-ponies-earth.json \
     names-ponies-pegasus.json \
-    names-ponies-unicorn.json\
+    names-ponies-unicorn.json \
+    pokemon.json \
   | jq -r '.[]' \
   | sort \
   | uniq \
