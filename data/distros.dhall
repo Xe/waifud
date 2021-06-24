@@ -190,4 +190,11 @@ in  [ Distro::{
       , sha256Sum = "xxxfakewindowsserver2012r2"
       , minSize = 13
       }
+    , Distro::{
+      , name = "windows-10-21h1"
+      , downloadURL = "http://tailnology/vms/win10-21h1-prepped.qcow2"
+      , sha256Sum =
+          "6637c1fe58d5ce13429e94d315e5a1c3580d1f0e379378c0bd49c5d7c4531100"
+      , minSize = 40
+      }
     ]

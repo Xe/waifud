@@ -1,0 +1,10 @@
+#cloud-config
+#vim:syntax=yaml
+
+users:
+  - name: Xe
+    passwd: "hunter2"
+    primary_group: Administrators
+    groups: [ Administrators, Users ]
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPg9gYKVglnO2HQodSJt4z4mNrUSUiyJQ7b+J798bwD9 cadey@shachi
