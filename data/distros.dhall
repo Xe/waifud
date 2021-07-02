@@ -105,6 +105,22 @@ in  [ Distro::{
       , minSize = 3
       }
     , Distro::{
+      , name = "oracle-linux-7.9"
+      , downloadURL =
+          "https://yum.oracle.com/templates/OracleLinux/OL7/u9/x86_64/OL7U9_x86_64-olvm-b86.qcow2"
+      , sha256Sum =
+          "2ef4c10c0f6a0b17844742adc9ede7eb64a2c326e374068b7175f2ecbb1956fb"
+      , minSize = 40
+      }
+    , Distro::{
+      , name = "oracle-linux-8.4"
+      , downloadURL =
+          "https://yum.oracle.com/templates/OracleLinux/OL8/u4/x86_64/OL8U4_x86_64-olvm-b85.qcow2"
+      , sha256Sum =
+          "b86e1f1ea8fc904ed763a85ba12e9f12f4291c019c8435d0e4e6133392182b0b"
+      , minSize = 40
+      }
+    , Distro::{
       , name = "opensuse-leap-15.1"
       , downloadURL =
           "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.1/images/openSUSE-Leap-15.1-OpenStack.x86_64.qcow2"
