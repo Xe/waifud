@@ -33,6 +33,13 @@ in  [ Distro::{
       , minSize = 25
       }
     , Distro::{
+      , name = "android-9"
+      , downloadURL = "http://tailnology/vms/android-x86-9.0.qcow2"
+      , sha256Sum =
+          "4dd5362025ee8c925299b7e88c2a10dba3ea29182f9405386e14601f76364cd3"
+      , minSize = 20
+      }
+    , Distro::{
       , name = "arch"
       , downloadURL =
           "https://mirror.pkgbuild.com/images/v20210515.22945/Arch-Linux-x86_64-cloudimg-20210515.22945.qcow2"
