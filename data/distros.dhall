@@ -42,9 +42,9 @@ in  [ Distro::{
     , Distro::{
       , name = "arch"
       , downloadURL =
-          "https://mirror.pkgbuild.com/images/v20210515.22945/Arch-Linux-x86_64-cloudimg-20210515.22945.qcow2"
+          "https://mirror.pkgbuild.com/images/v20210815.31636/Arch-Linux-x86_64-cloudimg-20210815.31636.qcow2"
       , sha256Sum =
-          "e4077f5ba3c5d545478f64834bc4852f9f7a2e05950fce8ecd0df84193162a27"
+          "ded266a65c6327ec7fe2d15fc86408c68e3a662b759a4c0a905583e3d3e71816"
       , minSize = 2
       }
     , Distro::{
@@ -186,9 +186,9 @@ in  [ Distro::{
     , Distro::{
       , name = "ubuntu-20.04"
       , downloadURL =
-          "https://cloud-images.ubuntu.com/focal/20210603/focal-server-cloudimg-amd64.img"
+          "https://cloud-images.ubuntu.com/focal/20210831/focal-server-cloudimg-amd64.img"
       , sha256Sum =
-          "1c0969323b058ba8b91fec245527069c2f0502fc119b9138b213b6bfebd965cb"
+          "ad5a8a12b79f7bbd5d2b4bbf500d22872f3155d839f93c18de3c093be72ac6d1"
       , minSize = 5
       }
     , Distro::{
