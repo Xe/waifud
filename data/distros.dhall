@@ -170,9 +170,9 @@ in  [ Distro::{
     , Distro::{
       , name = "ubuntu-18.04"
       , downloadURL =
-          "https://cloud-images.ubuntu.com/bionic/20210604/bionic-server-cloudimg-amd64.img"
+          "http://cloud-images.ubuntu.com/bionic/20210720/bionic-server-cloudimg-amd64.img"
       , sha256Sum =
-          "50c38d3f7307fe770c15a69b316d0001ac28e484239218d23e1ca8c8e7ec9a10"
+          "c0bd5923b8edef2b32610a70ca99d92faebfbb1d8784c80328a45f7768433256"
       , minSize = 5
       }
     , Distro::{
