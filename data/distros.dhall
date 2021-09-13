@@ -202,9 +202,9 @@ in  [ Distro::{
     , Distro::{
       , name = "ubuntu-21.04"
       , downloadURL =
-          "https://cloud-images.ubuntu.com/hirsute/20210603/hirsute-server-cloudimg-amd64.img"
+          "https://cloud-images.ubuntu.com/hirsute/20210909/hirsute-server-cloudimg-amd64.img"
       , sha256Sum =
-          "bf07f36fc99ff521d3426e7d257e28f0c81feebc9780b0c4f4e25ae594ff4d3b"
+          "259f5225fa45029210befad9f43f704bac8c27babcea1f97db30c54c14b98cb2"
       , minSize = 5
       }
     , Distro::{
