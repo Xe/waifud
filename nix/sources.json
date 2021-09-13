@@ -12,10 +12,10 @@
         "homepage": null,
         "owner": "Xe",
         "repo": "gruvbox-css",
-        "rev": "0e78b4332ead8635697b990f309608d99b46967e",
-        "sha256": "00n59d5f5k9aq0pd99i0nkrzisanny9nwgzqjc9ijy4y66r9bnvn",
+        "rev": "22afb5260c0a029acfd27807b467e4c8f76fb18f",
+        "sha256": "1wvyqg0xfcqww0w57s312q5ndy0as7hx7hb7pgnwcv6k4b0dfrr6",
         "type": "tarball",
-        "url": "https://github.com/Xe/gruvbox-css/archive/0e78b4332ead8635697b990f309608d99b46967e.tar.gz",
+        "url": "https://github.com/Xe/gruvbox-css/archive/22afb5260c0a029acfd27807b467e4c8f76fb18f.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "naersk": {
@@ -24,10 +24,10 @@
         "homepage": "",
         "owner": "nmattia",
         "repo": "naersk",
-        "rev": "e09c320446c5c2516d430803f7b19f5833781337",
-        "sha256": "0k1pk2ixnxl6njjrgy750gm6m1nkkdsah383n3wp4ybrzacnav5h",
+        "rev": "08afb3d1dbfe016108b72e05b02ba0f6ecb3c8e1",
+        "sha256": "1nn8hyg3jqjmr2808vvsph5w914l7pf8n4sr05vivhhr60578s1c",
         "type": "tarball",
-        "url": "https://github.com/nmattia/naersk/archive/e09c320446c5c2516d430803f7b19f5833781337.tar.gz",
+        "url": "https://github.com/nmattia/naersk/archive/08afb3d1dbfe016108b72e05b02ba0f6ecb3c8e1.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
