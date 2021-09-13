@@ -14,6 +14,7 @@ table! {
         zvol -> Text,
         zvol_size -> Integer,
         use_sata -> Nullable<Bool>,
+        mac_address -> Text,
         owner -> Text,
     }
 }

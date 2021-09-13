@@ -4,14 +4,15 @@ CREATE TABLE IF NOT EXISTS connections
   );
 
 CREATE TABLE IF NOT EXISTS instances
-  ( id        TEXT           NOT NULL PRIMARY KEY
-  , "name"    TEXT    UNIQUE NOT NULL
-  , ram       INTEGER        NOT NULL DEFAULT 512
-  , cores     INTEGER        NOT NULL DEFAULT 2
-  , zvol      TEXT           NOT NULL
-  , zvol_size INTEGER        NOT NULL DEFAULT 25
-  , use_sata  BOOLEAN                 DEFAULT FALSE
-  , owner     TEXT           NOT NULL
+  ( id          TEXT           NOT NULL PRIMARY KEY
+  , "name"      TEXT    UNIQUE NOT NULL
+  , ram         INTEGER        NOT NULL DEFAULT 512
+  , cores       INTEGER        NOT NULL DEFAULT 2
+  , zvol        TEXT           NOT NULL
+  , zvol_size   INTEGER        NOT NULL DEFAULT 25
+  , use_sata    BOOLEAN                 DEFAULT FALSE
+  , mac_address TEXT           NOT NULL
+  , owner       TEXT           NOT NULL
   , FOREIGN KEY(owner) REFERENCES connections(hostname)
   );
 
