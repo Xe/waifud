@@ -148,7 +148,7 @@ in  [ Distro::{
       , downloadURL =
           "http://mirror.its.dal.ca/opensuse/distribution/leap/15.3/appliances/openSUSE-Leap-15.3-JeOS.x86_64-OpenStack-Cloud.qcow2"
       , sha256Sum =
-          "22e0392e4d0becb523d1bc5f709366140b7ee20d6faf26de3d0f9046d1ee15d5"
+          "aab4dbf6f7e40d6f3605ee1545e2858349bbefb6b09b28a1369900537a1133a1"
       , minSize = 5
       }
     , Distro::{
@@ -186,9 +186,9 @@ in  [ Distro::{
     , Distro::{
       , name = "ubuntu-20.04"
       , downloadURL =
-          "https://cloud-images.ubuntu.com/focal/20210831/focal-server-cloudimg-amd64.img"
+          "https://cloud-images.ubuntu.com/focal/20210916/focal-server-cloudimg-amd64.img"
       , sha256Sum =
-          "ad5a8a12b79f7bbd5d2b4bbf500d22872f3155d839f93c18de3c093be72ac6d1"
+          "5e10fb23ecb10123496dd21934a0a5b53b03936d0ab59060c7a95bf60b19152d"
       , minSize = 5
       }
     , Distro::{
