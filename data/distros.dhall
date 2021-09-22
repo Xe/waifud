@@ -160,6 +160,14 @@ in  [ Distro::{
       , minSize = 5
       }
     , Distro::{
+      , name = "ubuntu-14.04"
+      , downloadURL =
+          "http://cloud-images.ubuntu.com/trusty/20191107/trusty-server-cloudimg-amd64-disk1.img"
+      , sha256Sum =
+          "3c4ad0defbe729dd3c16d2851d775575d1c5351c85734418d3b89bfdfd28ebd1"
+      , minSize = 5
+      }
+    , Distro::{
       , name = "ubuntu-16.04"
       , downloadURL =
           "https://cloud-images.ubuntu.com/xenial/20210429/xenial-server-cloudimg-amd64-disk1.img"
