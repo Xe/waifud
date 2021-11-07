@@ -1,25 +1,11 @@
 #cloud-config
 #vim:syntax=yaml
 
-cloud_config_modules:
- - runcmd
-
-cloud_final_modules:
- - [users-groups, always]
- - [scripts-user, once-per-instance]
-
 users:
   - name: xe
     groups: [ wheel ]
     sudo: [ "ALL=(ALL) NOPASSWD:ALL" ]
     shell: /bin/bash
-    ssh-authorized-keys: 
+    ssh-authorized-keys:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPg9gYKVglnO2HQodSJt4z4mNrUSUiyJQ7b+J798bwD9
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPYr9hiLtDHgd6lZDgQMkJzvYeAXmePOrgFaWHAjJvNU
-
-write_files:
-  - path: /etc/cloud/cloud.cfg.d/80_disable_network_after_firstboot.cfg
-    content: |
-      # Disable network configuration after first boot
-      network:
-        config: disabled
