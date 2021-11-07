@@ -96,22 +96,6 @@ in  [ Distro::{
       , minSize = 5
       }
     , Distro::{
-      , name = "freebsd-12"
-      , downloadURL =
-          "https://object-storage.public.mtl1.vexxhost.net/swift/v1/1dbafeefbd4f4c80864414a441e72dd2/bsd-cloud-image.org/images/freebsd/12.2/freebsd-12.2.qcow2"
-      , sha256Sum =
-          "3c7c7fafe5c389b9295dcaab7a71c47cc30ad6e79e3a0c9cb164933ad2fb9814"
-      , minSize = 3
-      }
-    , Distro::{
-      , name = "freebsd-13"
-      , downloadURL =
-          "https://object-storage.public.mtl1.vexxhost.net/swift/v1/1dbafeefbd4f4c80864414a441e72dd2/bsd-cloud-image.org/images/freebsd/13.0/freebsd-13.0.qcow2"
-      , sha256Sum =
-          "f7d16fb927f836f94cda37955314506e8507476d0b2d985acf572f1c7ce90e6a"
-      , minSize = 3
-      }
-    , Distro::{
       , name = "oracle-linux-7.9"
       , downloadURL =
           "https://yum.oracle.com/templates/OracleLinux/OL7/u9/x86_64/OL7U9_x86_64-olvm-b86.qcow2"
@@ -227,5 +211,45 @@ in  [ Distro::{
       , sha256Sum =
           "6637c1fe58d5ce13429e94d315e5a1c3580d1f0e379378c0bd49c5d7c4531100"
       , minSize = 40
+      }
+    , Distro::{
+      , name = "dragonflybsd-6.0"
+      , downloadURL =
+          "https://object-storage.public.mtl1.vexxhost.net/swift/v1/1dbafeefbd4f4c80864414a441e72dd2/bsd-cloud-image.org/images/dragonflybsd/6.0.0/dragonflybsd-6.0.0-ufs.qcow2"
+      , sha256Sum =
+          "839c75b33e3c3a18ed3792dfd7123c3d39e9183fac085cda67cf4f4133c292e3"
+      , minSize = 4
+      }
+    , Distro::{
+      , name = "freebsd-12"
+      , downloadURL =
+          "https://object-storage.public.mtl1.vexxhost.net/swift/v1/1dbafeefbd4f4c80864414a441e72dd2/bsd-cloud-image.org/images/freebsd/12.2/freebsd-12.2.qcow2"
+      , sha256Sum =
+          "3c7c7fafe5c389b9295dcaab7a71c47cc30ad6e79e3a0c9cb164933ad2fb9814"
+      , minSize = 3
+      }
+    , Distro::{
+      , name = "freebsd-13"
+      , downloadURL =
+          "https://object-storage.public.mtl1.vexxhost.net/swift/v1/1dbafeefbd4f4c80864414a441e72dd2/bsd-cloud-image.org/images/freebsd/13.0/freebsd-13.0-ufs.qcow2"
+      , sha256Sum =
+          "64d1d9a3aa4b0cf118c7338bf57ec62005a436a23d3f82499a786690275ee5ee"
+      , minSize = 3
+      }
+    , Distro::{
+      , name = "netbsd-9.1"
+      , downloadURL =
+          "https://object-storage.public.mtl1.vexxhost.net/swift/v1/1dbafeefbd4f4c80864414a441e72dd2/bsd-cloud-image.org/images/netbsd/9.2/netbsd-9.2.qcow2"
+      , sha256Sum =
+          "653552edeba7b70041bdd1877f30c39ad933d80f1de1cc8d8b3f4e3eaf849687"
+      , minSize = 3
+      }
+    , Distro::{
+      , name = "openbsd-6.9"
+      , downloadURL =
+          "https://object-storage.public.mtl1.vexxhost.net/swift/v1/1dbafeefbd4f4c80864414a441e72dd2/bsd-cloud-image.org/images/openbsd/6.9/openbsd-6.9.qcow2"
+      , sha256Sum =
+          "bb52acb3770ef5caf3e941a38a0e47b785c5f148d4998c1d2945fc45920336e2"
+      , minSize = 4
       }
     ]
