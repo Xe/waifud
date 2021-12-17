@@ -25,11 +25,19 @@ in  [ Distro::{
       , minSize = 2
       }
     , Distro::{
+      , name = "alpine-3.15"
+      , downloadURL =
+          "https://xena.greedo.xeserv.us/pkg/alpine/img/alpine-3.15.0-cloud-init-within.qcow2"
+      , sha256Sum =
+          "13033e43676fc9776fcf228eb6465b8cb3b01ebe552a3c5de87483e00ec7295a"
+      , minSize = 2
+      }
+    , Distro::{
       , name = "alpine-edge"
       , downloadURL =
-          "https://xena.greedo.xeserv.us/pkg/alpine/img/alpine-edge-2021-05-18-cloud-init-within.qcow2"
+          "https://xena.greedo.xeserv.us/pkg/alpine/img/alpine-edge-2021-12-17-cloud-init-within.qcow2"
       , sha256Sum =
-          "b3bb15311c0bd3beffa1b554f022b75d3b7309b5fdf76fb146fe7c72b83b16d0"
+          "8ecba5142eb3d33306ab7a2964a2ed1ec77224b74d442eb84b0e08d384dea4db"
       , minSize = 2
       }
     , Distro::{
