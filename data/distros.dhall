@@ -112,6 +112,22 @@ in  [ Distro::{
       , minSize = 5
       }
     , Distro::{
+      , name = "gentoo-openrc"
+      , downloadURL =
+          "http://distfiles.gentoo.org/experimental/amd64/openstack/gentoo-openstack-amd64-default-20211121.qcow2"
+      , sha256Sum =
+          "9ad74db5975b1c46fd32b704ede38ea45aabf1bfbfa997196dbcb6a6198dfe1c"
+      , minSize = 5
+      }
+    , Distro::{
+      , name = "gentoo-systemd"
+      , downloadURL =
+          "http://distfiles.gentoo.org/experimental/amd64/openstack/gentoo-openstack-amd64-systemd-20211121.qcow2"
+      , sha256Sum =
+          "d33db95137ecf936cce3fe22c814af42f03c71f89204d3f9b89f58405d8787a9"
+      , minSize = 5
+      }
+    , Distro::{
       , name = "oracle-linux-7.9"
       , downloadURL =
           "https://yum.oracle.com/templates/OracleLinux/OL7/u9/x86_64/OL7U9_x86_64-olvm-b86.qcow2"
