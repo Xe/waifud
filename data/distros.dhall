@@ -176,6 +176,14 @@ in  [ Distro::{
       , minSize = 5
       }
     , Distro::{
+      , name = "rocky-linux-8"
+      , downloadURL =
+          "https://download.rockylinux.org/pub/rocky/8.5/images/Rocky-8-GenericCloud-8.5-20211114.2.x86_64.qcow2"
+      , sha256Sum =
+          "c23f58f26f73fb9ae92bfb4cf881993c23fdce1bbcfd2881a5831f90373ce0c8"
+      , minSize = 10
+      }
+    , Distro::{
       , name = "ubuntu-14.04"
       , downloadURL =
           "http://cloud-images.ubuntu.com/trusty/20191107/trusty-server-cloudimg-amd64-disk1.img"
