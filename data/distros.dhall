@@ -218,9 +218,9 @@ in  [ Distro::{
     , Distro::{
       , name = "ubuntu-20.04"
       , downloadURL =
-          "https://cloud-images.ubuntu.com/focal/20210916/focal-server-cloudimg-amd64.img"
+          "http://cloud-images.ubuntu.com/focal/20220118/focal-server-cloudimg-amd64.img"
       , sha256Sum =
-          "5e10fb23ecb10123496dd21934a0a5b53b03936d0ab59060c7a95bf60b19152d"
+          "e1264d4cca6c6c537e92f4e676cdc3cddbc5d7fe627d1d439d7e6973ebc2e216"
       , minSize = 5
       }
     , Distro::{
