@@ -80,6 +80,14 @@ in  [ Distro::{
       , minSize = 10
       }
     , Distro::{
+      , name = "centos-stream-9"
+      , downloadURL =
+          "http://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-20220125.0.x86_64.qcow2"
+      , sha256Sum =
+          "7233b7864919d097360b37b6aa8272283c5e4e8848e2c3e4c4aaf18615aec197"
+      , minSize = 10
+      }
+    , Distro::{
       , name = "debian-9"
       , downloadURL =
           "https://cdimage.debian.org/cdimage/openstack/9.13.21-20210511/debian-9.13.21-20210511-openstack-amd64.qcow2"
