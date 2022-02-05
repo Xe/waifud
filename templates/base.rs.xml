@@ -1,14 +1,15 @@
+@(name: String, uuid: String, mac_address: String, zvol: String, sata: bool, memory: i32, cpus: i32, seed: String):
 <domain type="kvm" xmlns:qemu='http://libvirt.org/schemas/domain/qemu/1.0'>
-  <name>{{.Name}}</name>
-  <uuid>{{.UUID}}</uuid>
+  <name>@name</name>
+  <uuid>@uuid</uuid>
   <metadata>
     <libosinfo:libosinfo xmlns:libosinfo="http://libosinfo.org/xmlns/libvirt/domain/1.0">
       <libosinfo:os id="http://nixos.org/nixos/unstable"/>
     </libosinfo:libosinfo>
   </metadata>
-  <memory>{{.Memory}}</memory>
-  <currentMemory>{{.Memory}}</currentMemory>
-  <vcpu>2</vcpu>
+  <memory>@memory</memory>
+  <currentMemory>@memory</currentMemory>
+  <vcpu>@cpus</vcpu>
   <os>
     <type arch="x86_64" machine="q35">hvm</type>
     <boot dev="hd"/>
@@ -35,29 +36,29 @@
     <emulator>/run/libvirt/nix-emulators/qemu-system-x86_64</emulator>
     <disk type="block" device="disk">
       <driver name="qemu" type="raw" cache="none" io="native"/>
-      <source dev="/dev/zvol/{{.ZVol}}"/>
-      {{if .SATA}}
+      <source dev="/dev/zvol/@zvol"/>
+      @if sata {
       <target dev="sda" bus="sata"/>
-      {{else}}
+      } else {
       <target dev="vda" bus="virtio"/>
-      {{end}}
+      }
     </disk>
     <disk type="file" device="cdrom">
       <driver name="qemu" type="raw"/>
-      <source file="{{.Seed}}"/>
+      <source file="@seed"/>
       <target dev="sdb" bus="sata"/>
       <readonly/>
     </disk>
     <controller type="usb" model="qemu-xhci" ports="15"/>
     <interface type="network">
       <source network="default"/>
-      <mac address="{{.MACAddress}}"/>
-      {{if .SATA}}
+      <mac address="@mac_address"/>
+      @if sata {
       <model type="e1000e"/>
       <address type="pci" domain="0x0000" bus="0x01" slot="0x00" function="0x0"/>
-      {{else}}
+      } else {
       <model type="virtio"/>
-      {{end}}
+      }
     </interface>
     <console type="pty"/>
     <channel type="unix">
@@ -82,6 +83,6 @@
   </devices>
   <qemu:commandline>
     <qemu:arg value="-smbios" />
-    <qemu:arg value="type=1,serial=ds=nocloud;h={{.Name}}" />
+    <qemu:arg value="type=1,serial=ds=nocloud;h=@name" />
   </qemu:commandline>
 </domain>
