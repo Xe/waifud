@@ -4,8 +4,15 @@ let Distro =
           , downloadURL : Text
           , sha256Sum : Text
           , minSize : Natural
+          , format : Text
           }
-      , default = { name = "", downloadURL = "", sha256Sum = "", minSize = 5 }
+      , default =
+        { name = ""
+        , downloadURL = ""
+        , sha256Sum = ""
+        , minSize = 5
+        , format = "waifud://qcow2"
+        }
       }
 
 in  [ Distro::{
@@ -43,9 +50,9 @@ in  [ Distro::{
     , Distro::{
       , name = "amazon-linux"
       , downloadURL =
-          "https://cdn.amazonlinux.com/os-images/2.0.20210427.0/kvm/amzn2-kvm-2.0.20210427.0-x86_64.xfs.gpt.qcow2"
+          "https://cdn.amazonlinux.com/os-images/2.0.20211223.0/kvm/amzn2-kvm-2.0.20211223.0-x86_64.xfs.gpt.qcow2"
       , sha256Sum =
-          "6ef9daef32cec69b2d0088626ec96410cd24afc504d57278bbf2f2ba2b7e529b"
+          "093ee88e855e5f13490cbda4ba72c8fef0bec17ecbbede12dc549fe2fbac511c"
       , minSize = 25
       }
     , Distro::{
@@ -88,35 +95,19 @@ in  [ Distro::{
       , minSize = 10
       }
     , Distro::{
-      , name = "debian-9"
-      , downloadURL =
-          "https://cdimage.debian.org/cdimage/openstack/9.13.21-20210511/debian-9.13.21-20210511-openstack-amd64.qcow2"
-      , sha256Sum =
-          "0667a08e2d947b331aee068db4bbf3a703e03edaf5afa52e23d534adff44b62a"
-      , minSize = 2
-      }
-    , Distro::{
-      , name = "debian-10"
-      , downloadURL =
-          "https://cdimage.debian.org/images/cloud/buster/20210329-591/debian-10-generic-amd64-20210329-591.qcow2"
-      , sha256Sum =
-          "70c61956095870c4082103d1a7a1cb5925293f8405fc6cb348588ec97e8611b0"
-      , minSize = 2
-      }
-    , Distro::{
       , name = "debian-11"
       , downloadURL =
-          "https://cdimage.debian.org/images/cloud/bullseye/daily/20210515-638/debian-11-generic-amd64-daily-20210515-638.qcow2"
+          "https://cdimage.debian.org/images/cloud/bullseye/20220121-894/debian-11-generic-amd64-20220121-894.qcow2"
       , sha256Sum =
-          "0e77c13bd5f15759916d1e60e4925d8a3307bcd80af373fa929cdf419b602694"
+          "2fc7337acbe3533293450498ce445b08e5d26493044dc7fc7daa267d015a3814"
       , minSize = 2
       }
     , Distro::{
-      , name = "fedora-34"
+      , name = "fedora-35"
       , downloadURL =
-          "https://download.fedoraproject.org/pub/fedora/linux/releases/34/Cloud/x86_64/images/Fedora-Cloud-Base-34-1.2.x86_64.qcow2"
+          "https://mirror.dst.ca/fedora/releases/35/Cloud/x86_64/images/Fedora-Cloud-Base-35-1.2.x86_64.qcow2"
       , sha256Sum =
-          "b9b621b26725ba95442d9a56cbaa054784e0779a9522ec6eafff07c6e6f717ea"
+          "fe84502779b3477284a8d4c86731f642ca10dd3984d2b5eccdf82630a9ca2de6"
       , minSize = 5
       }
     , Distro::{
