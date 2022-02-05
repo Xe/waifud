@@ -18,7 +18,7 @@ tracing-futures = "0.2"
 tracing-log = "0.1"
 tracing-subscriber = "0.2"
 uuid = { version = "0.8", features = [ "serde" ] }
-virt = "0.2"
+virt = { git = "https://gitlab.com/libvirt/libvirt-rust.git" }
 
 [dependencies.diesel]
 version = "1"
