@@ -1,8 +1,8 @@
-use crate::{models::Distro, Error};
+use crate::{models::Distro, Result};
 use rusqlite::{params, Connection};
 
 #[instrument(err)]
-pub fn run() -> Result<(), crate::Error> {
+pub fn run() -> Result {
     info!("running");
     let connection = crate::establish_connection()?;
 
@@ -13,7 +13,7 @@ pub fn run() -> Result<(), crate::Error> {
     Ok(())
 }
 
-fn load_distros(conn: Connection) -> Result<(), Error> {
+fn load_distros(conn: Connection) -> Result {
     let count = conn.query_row("SELECT COUNT(*) FROM distros", params![], |row| {
         row.get::<_, i64>(0)
     })?;

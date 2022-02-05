@@ -1,19 +1,19 @@
 #[macro_use]
 extern crate tracing;
 
-use axum::{routing::get, AddExtensionLayer, Json, Router};
-use rusqlite::{params, Connection};
+use axum::{routing::get, AddExtensionLayer, Router};
+use rusqlite::Connection;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tower::limit::ConcurrencyLimitLayer;
 use tower_http::trace::TraceLayer;
-use waifud::{models::Distro, Error};
+use waifud::Result;
 
 #[derive(Clone)]
 pub struct State(Arc<Mutex<Connection>>);
 
 #[tokio::main]
-async fn main() -> Result<(), Error> {
+async fn main() -> Result {
     tracing_subscriber::fmt::init();
 
     waifud::migrate::run()?;
@@ -27,7 +27,7 @@ async fn main() -> Result<(), Error> {
 
     // build our application with a route
     let app = Router::new()
-        .route("/api/v1/distros", get(get_distros))
+        .route("/api/v1/distros", get(waifud::api::distros::get_distros))
         .route(
             "/api/v1/libvirt/machines",
             get(waifud::api::libvirt::get_machines),
@@ -54,33 +54,4 @@ async fn main() -> Result<(), Error> {
         .await?;
 
     Ok(())
-}
-
-#[instrument(err)]
-fn list_distros() -> Result<Vec<Distro>, Error> {
-    let conn = waifud::establish_connection()?;
-
-    let mut stmt =
-        conn.prepare("SELECT name, download_url, sha256sum, min_size, format FROM distros")?;
-    let iter = stmt.query_map(params![], |row| {
-        Ok(Distro {
-            name: row.get(0)?,
-            download_url: row.get(1)?,
-            sha256sum: row.get(2)?,
-            min_size: row.get(3)?,
-            format: row.get(4)?,
-        })
-    })?;
-    let mut result: Vec<Distro> = vec![];
-
-    for distro in iter {
-        result.push(distro.unwrap());
-    }
-
-    Ok(result)
-}
-
-async fn get_distros() -> Result<Json<Vec<Distro>>, Error> {
-    let result = list_distros()?;
-    Ok(Json(result))
 }

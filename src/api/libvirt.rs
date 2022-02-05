@@ -1,4 +1,4 @@
-use crate::Error;
+use crate::Result;
 use axum::Json;
 use serde::{Deserialize, Serialize};
 use virt::connect::Connect;
@@ -14,7 +14,7 @@ pub struct Machine {
 }
 
 #[instrument(err)]
-pub async fn get_machines() -> Result<Json<Vec<Machine>>, Error> {
+pub async fn get_machines() -> Result<Json<Vec<Machine>>> {
     let mut result = Vec::new();
     for host in &["kos-mos", "logos", "ontos", "pneuma"] {
         result.extend_from_slice(&list_all_vms(
@@ -26,7 +26,7 @@ pub async fn get_machines() -> Result<Json<Vec<Machine>>, Error> {
 }
 
 #[instrument(skip(uri), err)]
-fn list_all_vms(uri: &str, host: String) -> Result<Vec<Machine>, Error> {
+fn list_all_vms(uri: &str, host: String) -> Result<Vec<Machine>> {
     debug!("connecting to {}: {}", host, uri);
     let mut conn = Connect::open(uri)?;
     let mut result = vec![];
