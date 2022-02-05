@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"context"
 	crand "crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -291,6 +292,34 @@ func main() {
 	}
 
 	log.Printf("created %s", domain.Name)
+
+	t := time.NewTicker(500 * time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	var ipAddress string
+outer:
+	for {
+		select {
+		case <-ctx.Done():
+			log.Fatalln("5 minute timeout for interface address collection, please check on the domain")
+		case <-t.C:
+			addrs, err := l.DomainInterfaceAddresses(*domain, uint32(libvirt.DomainInterfaceAddressesSrcLease), 0)
+			if err != nil {
+				log.Printf("error getting ip addresses: %v", err)
+				continue
+			}
+
+			for _, addr := range addrs {
+				for _, addr := range addr.Addrs {
+					ipAddress = addr.Addr
+					break outer
+				}
+			}
+		}
+	}
+
+	log.Printf("SSH into %s", ipAddress)
 }
 
 func randomMac() (string, error) {
