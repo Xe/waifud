@@ -2,8 +2,10 @@ CREATE TABLE IF NOT EXISTS instances
   ( uuid TEXT PRIMARY KEY NOT NULL
   , name TEXT NOT NULL UNIQUE
   , host TEXT NOT NULL
+  , mac_address TEXT NOT NULL
   , memory INTEGER NOT NULL
   , disk_size INTEGER NOT NULL
+  , zvol_name TEXT NOT NULL
   );
 
 CREATE TABLE IF NOT EXISTS cloudconfig_seeds

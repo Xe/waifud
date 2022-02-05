@@ -11,10 +11,10 @@ repository = "https://github.com/Xe/waifud"
 [dependencies]
 anyhow = "1"
 axum = "0.4"
+hyper = "0.14"
 serde_dhall = "0.11"
 serde_json = "1"
 thiserror = "1"
-tower = "0.4"
 tracing = "0.1"
 tracing-futures = "0.2"
 tracing-log = "0.1"
@@ -32,6 +32,10 @@ features = [ "derive" ]
 
 [dependencies.tokio]
 version = "1"
+features = [ "full" ]
+
+[dependencies.tower]
+version = "0.4"
 features = [ "full" ]
 
 [dependencies.tower-http]

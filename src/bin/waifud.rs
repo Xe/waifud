@@ -4,44 +4,50 @@ extern crate tracing;
 use axum::{
     extract::Path,
     http::StatusCode,
-    response::{Html, Response},
+    response::{IntoResponse, Response},
     routing::get,
-    Json, Router,
+    AddExtensionLayer, Json, Router,
 };
-use rusqlite::params;
+use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, net::SocketAddr};
-use tokio::task::JoinError;
+use std::{net::AddrParseError, sync::Arc};
+use tokio::{sync::Mutex, task::JoinError};
+use tower::limit::ConcurrencyLimitLayer;
 use tower_http::trace::TraceLayer;
+use uuid::Uuid;
 use virt::connect::Connect;
 use waifud::models::Distro;
 
+#[derive(Clone)]
+pub struct State(Arc<Mutex<Connection>>);
+
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Error> {
     tracing_subscriber::fmt::init();
-    let middleware = tower::ServiceBuilder::new().layer(TraceLayer::new_for_http());
+    let middleware = tower::ServiceBuilder::new()
+        .layer(TraceLayer::new_for_http())
+        .layer(ConcurrencyLimitLayer::new(64))
+        .layer(AddExtensionLayer::new(State(Arc::new(Mutex::new(
+            waifud::establish_connection()?,
+        )))));
 
     // build our application with a route
     let app = Router::new()
-        .route("/", get(handler))
-        .route("/machines", get(get_machines))
-        .route("/:name/user-data", get(user_data))
-        .route("/:name/vendor-data", get(vendor_data))
-        .route("/:name/meta-data", get(meta_data))
-        .route("/distros", get(get_distros))
+        .route("/api/v1/distros", get(get_distros))
+        .route("/api/v1/libvirt/machines", get(get_machines))
+        .route("/api/cloudinit/:id/user-data", get(user_data))
+        .route("/api/cloudinit/:id/vendor-data", get(vendor_data))
+        .route("/api/cloudinit/:id/meta-data", get(meta_data))
         .layer(middleware);
 
     // run it
-    let addr = SocketAddr::from(([0, 0, 0, 0], 23818));
+    let addr = &"[::]:23818".parse()?;
     info!("listening on {}", addr);
-    axum::Server::bind(&addr)
+    axum::Server::bind(addr)
         .serve(app.into_make_service())
-        .await
-        .unwrap();
-}
+        .await?;
 
-async fn handler() -> axum::response::Html<&'static str> {
-    Html("<h1>Hello, world!</h1>")
+    Ok(())
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -57,6 +63,19 @@ pub enum Error {
 
     #[error("internal tokio error: {0}")]
     TokioJoin(#[from] JoinError),
+
+    #[error("hyper error: {0}")]
+    Hyper(#[from] hyper::Error),
+
+    #[error("address parse error: {0}")]
+    AddrParse(#[from] AddrParseError),
+}
+
+impl IntoResponse for Error {
+    fn into_response(self) -> Response {
+        let interm: (StatusCode, String) = self.into();
+        interm.into_response()
+    }
 }
 
 impl Into<(StatusCode, String)> for Error {
@@ -66,6 +85,8 @@ impl Into<(StatusCode, String)> for Error {
             Error::Dhall(why) => (StatusCode::BAD_REQUEST, format!("{}", why)),
             Error::SQLite(why) => (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", why)),
             Error::TokioJoin(why) => (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", why)),
+            Error::Hyper(why) => (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", why)),
+            Error::AddrParse(why) => (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", why)),
         }
     }
 }
@@ -110,16 +131,7 @@ fn list_all_vms(uri: &str, host: String) -> Result<Vec<Machine>, Error> {
     Ok(result)
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Machine {
-    pub name: String,
-    pub host: String,
-    pub active: bool,
-    pub uuid: String,
-    pub addr: Option<String>,
-    pub memory_megs: u64,
-}
-
+#[instrument]
 fn list_distros() -> Result<Vec<Distro>, Error> {
     let conn = waifud::establish_connection()?;
 
@@ -143,41 +155,50 @@ fn list_distros() -> Result<Vec<Distro>, Error> {
     Ok(result)
 }
 
-async fn get_distros() -> Result<Json<Vec<Distro>>, (StatusCode, String)> {
-    let result = list_distros().map_err(Into::into)?;
+async fn get_distros() -> Result<Json<Vec<Distro>>, Error> {
+    let result = list_distros()?;
     Ok(Json(result))
 }
 
-async fn get_machines() -> Result<Json<HashMap<String, Vec<Machine>>>, (StatusCode, String)> {
-    let mut result = HashMap::new();
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Machine {
+    pub name: String,
+    pub host: String,
+    pub active: bool,
+    pub uuid: String,
+    pub addr: Option<String>,
+    pub memory_megs: u64,
+}
+
+async fn get_machines() -> Result<Json<Vec<Machine>>, Error> {
+    let mut result = Vec::new();
     for host in &["kos-mos", "logos", "ontos", "pneuma"] {
-        result.insert(
+        result.extend_from_slice(&list_all_vms(
+            &format!("qemu+ssh://root@{}/system", host),
             host.to_string(),
-            list_all_vms(
-                &format!("qemu+ssh://root@{}/system", host),
-                host.to_string(),
-            )
-            .map_err(|why| {
-                error!("{}", why);
-                (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", why))
-            })?,
-        );
+        )?);
     }
     Ok(Json(result))
 }
 
-async fn meta_data(Path(name): Path<String>) -> String {
+async fn user_data(Path(id): Path<Uuid>) -> Result<String, Error> {
+    let conn = waifud::establish_connection()?;
+
+    Ok(conn.query_row(
+        "SELECT user_data FROM cloudconfig_seeds WHERE uuid = ?1",
+        params![id],
+        |row| Ok(row.get(0)?),
+    )?)
+}
+
+async fn meta_data(Path(id): Path<Uuid>) -> String {
     format!(
         "instance-id: hunter2
 local-hostname: {}",
-        name
+        id,
     )
 }
 
-async fn user_data(Path(_name): Path<String>) -> &'static str {
-    include_str!("../.././var/xe-base.yaml")
-}
-
-async fn vendor_data(Path(_name): Path<String>) -> &'static str {
+async fn vendor_data(Path(_id): Path<Uuid>) -> &'static str {
     include_str!("./vendor-data")
 }
