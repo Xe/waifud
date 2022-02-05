@@ -2062,6 +2062,7 @@ dependencies = [
  "anyhow",
  "axum",
  "hyper",
+ "rand",
  "ructe",
  "rusqlite",
  "serde",

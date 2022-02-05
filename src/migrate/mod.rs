@@ -1,30 +1,26 @@
-#[macro_use]
-extern crate tracing;
-
-use anyhow::Result;
+use crate::{models::Distro, Error};
 use rusqlite::{params, Connection};
-use waifud::models::Distro;
 
-fn main() -> Result<()> {
-    tracing_subscriber::fmt::init();
-
-    info!("{} migrator starting up", waifud::APPLICATION_NAME);
-
-    info!("running migrations");
-    let connection = waifud::establish_connection()?;
+#[instrument(err)]
+pub fn run() -> Result<(), crate::Error> {
+    info!("running");
+    let connection = crate::establish_connection()?;
 
     connection.execute_batch(include_str!("./schema.sql"))?;
-    info!("migrations succeeded");
 
     load_distros(connection)?;
 
     Ok(())
 }
 
-fn load_distros(conn: Connection) -> Result<()> {
-    conn.query_row("SELECT COUNT(*) FROM distros", params![], |row| {
+fn load_distros(conn: Connection) -> Result<(), Error> {
+    let count = conn.query_row("SELECT COUNT(*) FROM distros", params![], |row| {
         row.get::<_, i64>(0)
     })?;
+
+    if count != 0 {
+        return Ok(());
+    }
 
     let distros: Vec<Distro> =
         serde_dhall::from_str(include_str!("../../data/distros.dhall")).parse()?;
