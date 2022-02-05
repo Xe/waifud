@@ -1,0 +1,2 @@
+#cloud-config-jsonp
+[{ "op": "set", "path": "/final_message", "value": "waifud is online <3"}]

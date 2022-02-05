@@ -11,6 +11,7 @@ in pkgs.mkShell rec {
     rust-analyzer
     cargo
     cargo-watch
+    openssl
     pkg-config
     sqliteInteractive
     diesel-cli
