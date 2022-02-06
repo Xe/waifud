@@ -91,6 +91,21 @@ impl Client {
         Ok(m)
     }
 
+    pub async fn create_distro(&self, d: Distro) -> Result<Distro> {
+        let mut u = self.base_url.clone();
+        u.set_path("/api/v1/distros");
+        let d: Distro = self
+            .cli
+            .post(u)
+            .json(&d)
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?;
+        Ok(d)
+    }
+
     pub async fn list_distros(&self) -> Result<Vec<Distro>> {
         let mut u = self.base_url.clone();
         u.set_path("/api/v1/distros");

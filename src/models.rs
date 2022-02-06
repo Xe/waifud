@@ -17,7 +17,7 @@ pub struct CloudconfigSeed {
     pub user_data: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Distro {
     pub name: String,
     #[serde(rename = "downloadURL")]

@@ -4,7 +4,12 @@ extern crate tracing;
 use std::{convert::TryInto, fs, path::PathBuf, time::Duration};
 use structopt::StructOpt;
 use tabular::{row, Table};
-use waifud::{client::Client, libvirt::NewInstance, models::Instance, Error, Result};
+use waifud::{
+    client::Client,
+    libvirt::NewInstance,
+    models::{Distro, Instance},
+    Error, Result,
+};
 
 #[derive(StructOpt, Debug)]
 /// waifuctl lets you manage VM instances on waifud.
@@ -68,19 +73,6 @@ struct CreateOpts {
     distro: String,
 }
 
-/// Manage distribution images in waifud
-#[derive(StructOpt, Debug)]
-enum DistroCmd {
-    /// List all distros
-    List {
-        /// Show more information
-        #[structopt(short)]
-        verbose: bool,
-    },
-    /// Delete a distro image
-    Delete { name: String },
-}
-
 impl TryInto<NewInstance> for CreateOpts {
     type Error = anyhow::Error;
 
@@ -101,7 +93,58 @@ impl TryInto<NewInstance> for CreateOpts {
     }
 }
 
-async fn list_instances(cli: Client) -> Result<()> {
+/// Manage distribution images in waifud
+#[derive(StructOpt, Debug)]
+enum DistroCmd {
+    /// Create a new distro from details you provide
+    Create(CreateDistroOpts),
+    /// List all distros
+    List {
+        /// Show more information
+        #[structopt(short)]
+        verbose: bool,
+    },
+    /// Delete a distro image
+    Delete { name: String },
+}
+
+/// Create a new distro snapshot for waifud to use
+#[derive(StructOpt, Debug)]
+struct CreateDistroOpts {
+    /// Distribution name, include the version as a suffix
+    #[structopt(short, long)]
+    pub name: String,
+
+    /// Download URL for the qcow2 base snapshot
+    #[structopt(short, long = "download-url")]
+    pub download_url: String,
+
+    /// The sha256 of the qcow2 base snapshot
+    #[structopt(short, long = "sha256")]
+    pub sha256sum: String,
+
+    /// The minimum size of a VM created from this snapshot (gigabytes)
+    #[structopt(short, long)]
+    pub min_size: i32,
+
+    /// The format of the disk image
+    #[structopt(short, long, default_value = "waifud://qcow2")]
+    pub format: String,
+}
+
+impl Into<Distro> for CreateDistroOpts {
+    fn into(self) -> Distro {
+        Distro {
+            name: self.name,
+            download_url: self.download_url,
+            sha256sum: self.sha256sum,
+            min_size: self.min_size,
+            format: self.format,
+        }
+    }
+}
+
+async fn list_instances(cli: Client) -> Result {
     let instances = cli.list_instances().await?;
 
     let mut table = Table::new("{:>}  {:<}  {:<}  {:<}  {:<}");
@@ -123,7 +166,7 @@ async fn list_instances(cli: Client) -> Result<()> {
     Ok(())
 }
 
-async fn create_instance(cli: Client, opts: CreateOpts) -> Result<()> {
+async fn create_instance(cli: Client, opts: CreateOpts) -> Result {
     let ni: NewInstance = opts.try_into()?;
     let i = cli.create_instance(ni).await?;
 
@@ -146,7 +189,7 @@ async fn create_instance(cli: Client, opts: CreateOpts) -> Result<()> {
     Ok(())
 }
 
-async fn delete_instance(cli: Client, name: String) -> Result<()> {
+async fn delete_instance(cli: Client, name: String) -> Result {
     let instances = cli.list_instances().await?;
     let instances = instances
         .into_iter()
@@ -165,7 +208,15 @@ async fn delete_instance(cli: Client, name: String) -> Result<()> {
     Ok(())
 }
 
-async fn list_distros(cli: Client, verbose: bool) -> Result<()> {
+async fn create_distro(cli: Client, opts: CreateDistroOpts) -> Result {
+    let d: Distro = opts.into();
+    let d = cli.create_distro(d).await?;
+    println!("created {}", d.name);
+
+    Ok(())
+}
+
+async fn list_distros(cli: Client, verbose: bool) -> Result {
     let distros = cli.list_distros().await?;
 
     if verbose {
@@ -204,8 +255,9 @@ async fn main() -> Result<()> {
 
     if let Err(why) = match opt.cmd {
         Command::Distro { cmd } => match cmd {
-            DistroCmd::List { verbose } => list_distros(cli, verbose).await,
+            DistroCmd::Create(opts) => create_distro(cli, opts).await,
             DistroCmd::Delete { name } => delete_distro(cli, name).await,
+            DistroCmd::List { verbose } => list_distros(cli, verbose).await,
         },
         Command::List => list_instances(cli).await,
         Command::Create(opts) => create_instance(cli, opts).await,
