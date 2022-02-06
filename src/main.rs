@@ -5,15 +5,10 @@ use axum::{
     routing::{get, post},
     AddExtensionLayer, Router,
 };
-use rusqlite::Connection;
 use std::sync::Arc;
-use tokio::sync::Mutex;
 use tower::limit::ConcurrencyLimitLayer;
 use tower_http::trace::TraceLayer;
-use waifud::Result;
-
-#[derive(Clone)]
-pub struct State(Arc<Mutex<Connection>>);
+use waifud::{Result, State};
 
 #[tokio::main]
 async fn main() -> Result {
@@ -24,14 +19,18 @@ async fn main() -> Result {
     let middleware = tower::ServiceBuilder::new()
         .layer(TraceLayer::new_for_http())
         .layer(ConcurrencyLimitLayer::new(64))
-        .layer(AddExtensionLayer::new(State(Arc::new(Mutex::new(
-            waifud::establish_connection()?,
-        )))));
+        .layer(AddExtensionLayer::new(Arc::new(State::new()?)));
 
     // build our application with a route
     let app = Router::new()
         .route("/api/v1/distros", get(waifud::api::distros::get_distros))
         .route("/api/v1/instances", post(waifud::api::instances::make))
+        .route("/api/v1/instances", get(waifud::api::instances::list))
+        .route("/api/v1/instances/:id", get(waifud::api::instances::get))
+        .route(
+            "/api/v1/instances/:id/machine",
+            get(waifud::api::instances::get_machine),
+        )
         .route(
             "/api/v1/libvirt/machines",
             get(waifud::api::libvirt::get_machines),

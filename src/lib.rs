@@ -6,7 +6,8 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use rusqlite::Connection;
-use std::{env, net::AddrParseError};
+use std::{env, fmt, net::AddrParseError};
+use tokio::sync::Mutex;
 
 pub const APPLICATION_NAME: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 
@@ -22,6 +23,20 @@ pub mod libvirt;
 pub mod migrate;
 pub mod models;
 pub mod namegen;
+
+pub struct State(Mutex<Connection>);
+
+impl fmt::Debug for State {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "State()")
+    }
+}
+
+impl State {
+    pub fn new() -> Result<Self> {
+        Ok(State(Mutex::new(establish_connection()?)))
+    }
+}
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {

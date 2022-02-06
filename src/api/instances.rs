@@ -1,17 +1,17 @@
 use crate::{
-    establish_connection,
+    api::libvirt::Machine,
     libvirt::{random_mac, NewInstance},
     models::{Distro, Instance},
-    namegen, Error,
+    namegen, Error, State,
 };
-use axum::Json;
+use axum::{
+    extract::{Extension, Path},
+    Json,
+};
 use rusqlite::params;
 use std::{
-    io::{self, Write},
-    net::SocketAddr,
-    os::unix::prelude::ExitStatusExt,
-    process::ExitStatus,
-    time::Duration,
+    convert::TryFrom, net::SocketAddr, os::unix::prelude::ExitStatusExt, process::ExitStatus,
+    sync::Arc, time::Duration,
 };
 use tokio::{net::lookup_host, process::Command, task::spawn_blocking};
 use uuid::Uuid;
@@ -22,7 +22,82 @@ use virt::{
 
 #[instrument(err)]
 #[axum_macros::debug_handler]
-pub async fn make(Json(details): Json<NewInstance>) -> Result<Json<Instance>, Error> {
+pub async fn get_machine(
+    Path(id): Path<Uuid>,
+    Extension(state): Extension<Arc<State>>,
+) -> Result<Json<Machine>, Error> {
+    let conn = state.0.lock().await;
+
+    let mut stmt = conn.prepare("SELECT host FROM instances WHERE uuid = ?1")?;
+    let host: String = stmt.query_row(params![id], |row| row.get(0))?;
+
+    let conn = Connect::open(&format!("qemu+ssh://root@{}/system", host))?;
+
+    let dom = Domain::lookup_by_uuid_string(&conn, &id.to_string())?;
+    Ok(Json(Machine::try_from(dom)?))
+}
+
+#[instrument(err)]
+#[axum_macros::debug_handler]
+pub async fn get(
+    Path(id): Path<Uuid>,
+    Extension(state): Extension<Arc<State>>,
+) -> Result<Json<Instance>, Error> {
+    let conn = state.0.lock().await;
+
+    let mut stmt = conn.prepare(
+        "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name FROM instances WHERE uuid = ?1",
+    )?;
+    let instance = stmt.query_row(params![id], |row| {
+        Ok(Instance {
+            uuid: row.get(0)?,
+            name: row.get(1)?,
+            host: row.get(2)?,
+            mac_address: row.get(3)?,
+            memory: row.get(4)?,
+            disk_size: row.get(5)?,
+            zvol_name: row.get(6)?,
+        })
+    })?;
+
+    Ok(Json(instance))
+}
+
+#[instrument(err)]
+#[axum_macros::debug_handler]
+pub async fn list(Extension(state): Extension<Arc<State>>) -> Result<Json<Vec<Instance>>, Error> {
+    let conn = state.0.lock().await;
+
+    let mut result: Vec<Instance> = Vec::new();
+
+    let mut stmt = conn.prepare(
+        "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name FROM instances",
+    )?;
+    let instances = stmt.query_map(params![], |row| {
+        Ok(Instance {
+            uuid: row.get(0)?,
+            name: row.get(1)?,
+            host: row.get(2)?,
+            mac_address: row.get(3)?,
+            memory: row.get(4)?,
+            disk_size: row.get(5)?,
+            zvol_name: row.get(6)?,
+        })
+    })?;
+
+    for instance in instances {
+        result.push(instance?);
+    }
+
+    Ok(Json(result))
+}
+
+#[instrument(err)]
+#[axum_macros::debug_handler]
+pub async fn make(
+    Json(details): Json<NewInstance>,
+    Extension(state): Extension<Arc<State>>,
+) -> Result<Json<Instance>, Error> {
     let id = Uuid::new_v4();
 
     let addrs: Vec<SocketAddr> = lookup_host(details.host.clone() + ":22".into())
@@ -32,7 +107,7 @@ pub async fn make(Json(details): Json<NewInstance>) -> Result<Json<Instance>, Er
         return Err(Error::HostDoesntExist(details.host));
     }
 
-    let conn = establish_connection()?;
+    let conn = state.0.lock().await;
 
     let distro = conn.query_row(
         "SELECT name, download_url, sha256sum, min_size, format FROM distros WHERE name = ?1",
@@ -166,6 +241,7 @@ pub async fn make(Json(details): Json<NewInstance>) -> Result<Json<Instance>, Er
         return Err(Error::CantMakeInitSnapshot(details.host.clone(), stderr));
     }
 
+    let conn = state.0.lock().await;
     conn.execute(
         "INSERT INTO cloudconfig_seeds(uuid, user_data) VALUES (?1, ?2)",
         params![id.clone(), details.user_data.clone().unwrap()],
@@ -242,6 +318,7 @@ pub async fn make(Json(details): Json<NewInstance>) -> Result<Json<Instance>, Er
 
     {
         let ins = ins.clone();
+        let conn = state.0.lock().await;
         conn.execute(
             "INSERT INTO instances(uuid, name, host, mac_address, memory, disk_size, zvol_name) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
             params![

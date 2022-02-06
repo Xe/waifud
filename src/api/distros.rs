@@ -1,10 +1,11 @@
-use crate::{establish_connection, models::Distro, Result};
-use axum::Json;
+use crate::{models::Distro, Result, State};
+use axum::{extract::Extension, Json};
 use rusqlite::params;
+use std::sync::Arc;
 
 #[instrument(err)]
-fn list_distros() -> Result<Vec<Distro>> {
-    let conn = establish_connection()?;
+pub async fn get_distros(Extension(state): Extension<Arc<State>>) -> Result<Json<Vec<Distro>>> {
+    let conn = state.0.lock().await;
 
     let mut stmt =
         conn.prepare("SELECT name, download_url, sha256sum, min_size, format FROM distros")?;
@@ -23,10 +24,5 @@ fn list_distros() -> Result<Vec<Distro>> {
         result.push(distro.unwrap());
     }
 
-    Ok(result)
-}
-
-pub async fn get_distros() -> Result<Json<Vec<Distro>>> {
-    let result = list_distros()?;
     Ok(Json(result))
 }
