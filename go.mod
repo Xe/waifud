@@ -3,15 +3,15 @@ module github.com/Xe/waifud
 go 1.16
 
 require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/digitalocean/go-libvirt v0.0.0-20210513152157-a898af65b5cc
-	github.com/facebookgo/ensure v0.0.0-20200202191622-63f1cf65ac4c // indirect
-	github.com/facebookgo/flagenv v0.0.0-20160425205200-fcd59fca7456
-	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
-	github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4 // indirect
-	github.com/go-redis/redis/v8 v8.8.3
+	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/google/uuid v1.2.0
+	github.com/onsi/ginkgo v1.15.0 // indirect
+	github.com/onsi/gomega v1.10.5 // indirect
 	github.com/philandstuff/dhall-golang/v5 v5.0.0
-	golang.zx2c4.com/wireguard v0.0.0-20210525143454-64cb82f2b3f5
-	golang.zx2c4.com/wireguard/tun/netstack v0.0.0-20210525143454-64cb82f2b3f5
-	within.website/ln v0.9.1
+	github.com/pkg/errors v0.9.1 // indirect
+	github.com/stretchr/testify v1.7.0 // indirect
+	golang.org/x/net v0.0.0-20210423184538-5f58ad60dda6 // indirect
+	google.golang.org/protobuf v1.25.1-0.20201020201750-d3470999428b // indirect
 )
