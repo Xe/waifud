@@ -40,14 +40,6 @@ in  [ Distro::{
       , minSize = 2
       }
     , Distro::{
-      , name = "alpine-edge"
-      , downloadURL =
-          "https://xena.greedo.xeserv.us/pkg/alpine/img/alpine-edge-2021-12-17-cloud-init-within.qcow2"
-      , sha256Sum =
-          "8ecba5142eb3d33306ab7a2964a2ed1ec77224b74d442eb84b0e08d384dea4db"
-      , minSize = 2
-      }
-    , Distro::{
       , name = "amazon-linux"
       , downloadURL =
           "https://cdn.amazonlinux.com/os-images/2.0.20211223.0/kvm/amzn2-kvm-2.0.20211223.0-x86_64.xfs.gpt.qcow2"
@@ -56,18 +48,11 @@ in  [ Distro::{
       , minSize = 25
       }
     , Distro::{
-      , name = "android-9"
-      , downloadURL = "http://tailnology/vms/android-x86-9.0.qcow2"
-      , sha256Sum =
-          "4dd5362025ee8c925299b7e88c2a10dba3ea29182f9405386e14601f76364cd3"
-      , minSize = 20
-      }
-    , Distro::{
       , name = "arch"
       , downloadURL =
-          "https://mirror.pkgbuild.com/images/v20210815.31636/Arch-Linux-x86_64-cloudimg-20210815.31636.qcow2"
+          "https://mirror.pkgbuild.com/images/v20220204.46656/Arch-Linux-x86_64-cloudimg-20220204.46656.qcow2"
       , sha256Sum =
-          "ded266a65c6327ec7fe2d15fc86408c68e3a662b759a4c0a905583e3d3e71816"
+          "cf936eaededf6aff595dc72c91a9fac9d0577c6269a677a95d4daf80da612c8c"
       , minSize = 2
       }
     , Distro::{
@@ -81,26 +66,18 @@ in  [ Distro::{
     , Distro::{
       , name = "centos-8"
       , downloadURL =
-          "https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.3.2011-20201204.2.x86_64.qcow2"
+          "https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.4.2105-20210603.0.x86_64.qcow2"
       , sha256Sum =
-          "7ec97062618dc0a7ebf211864abf63629da1f325578868579ee70c495bed3ba0"
+          "3510fc7deb3e1939dbf3fe6f65a02ab1efcc763480bc352e4c06eca2e4f7c2a2"
       , minSize = 10
       }
     , Distro::{
       , name = "centos-stream-9"
       , downloadURL =
-          "http://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-20220125.0.x86_64.qcow2"
+          "https://cloud.centos.org/centos/9-stream/x86_64/images/CentOS-Stream-GenericCloud-9-20220204.0.x86_64.qcow2"
       , sha256Sum =
-          "7233b7864919d097360b37b6aa8272283c5e4e8848e2c3e4c4aaf18615aec197"
+          "6d561125c73c72f73f057c6a9de45af242b678336f3ff4fafdf0223af96a5f47"
       , minSize = 10
-      }
-    , Distro::{
-      , name = "debian-11"
-      , downloadURL =
-          "https://cdimage.debian.org/images/cloud/bullseye/20220121-894/debian-11-generic-amd64-20220121-894.qcow2"
-      , sha256Sum =
-          "2fc7337acbe3533293450498ce445b08e5d26493044dc7fc7daa267d015a3814"
-      , minSize = 2
       }
     , Distro::{
       , name = "fedora-35"
@@ -111,54 +88,6 @@ in  [ Distro::{
       , minSize = 5
       }
     , Distro::{
-      , name = "gentoo-openrc"
-      , downloadURL =
-          "http://distfiles.gentoo.org/experimental/amd64/openstack/gentoo-openstack-amd64-default-20211121.qcow2"
-      , sha256Sum =
-          "9ad74db5975b1c46fd32b704ede38ea45aabf1bfbfa997196dbcb6a6198dfe1c"
-      , minSize = 5
-      }
-    , Distro::{
-      , name = "gentoo-systemd"
-      , downloadURL =
-          "http://distfiles.gentoo.org/experimental/amd64/openstack/gentoo-openstack-amd64-systemd-20211121.qcow2"
-      , sha256Sum =
-          "d33db95137ecf936cce3fe22c814af42f03c71f89204d3f9b89f58405d8787a9"
-      , minSize = 5
-      }
-    , Distro::{
-      , name = "oracle-linux-7.9"
-      , downloadURL =
-          "https://yum.oracle.com/templates/OracleLinux/OL7/u9/x86_64/OL7U9_x86_64-olvm-b86.qcow2"
-      , sha256Sum =
-          "2ef4c10c0f6a0b17844742adc9ede7eb64a2c326e374068b7175f2ecbb1956fb"
-      , minSize = 40
-      }
-    , Distro::{
-      , name = "oracle-linux-8.4"
-      , downloadURL =
-          "https://yum.oracle.com/templates/OracleLinux/OL8/u4/x86_64/OL8U4_x86_64-olvm-b85.qcow2"
-      , sha256Sum =
-          "b86e1f1ea8fc904ed763a85ba12e9f12f4291c019c8435d0e4e6133392182b0b"
-      , minSize = 40
-      }
-    , Distro::{
-      , name = "opensuse-leap-15.1"
-      , downloadURL =
-          "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.1/images/openSUSE-Leap-15.1-OpenStack.x86_64.qcow2"
-      , sha256Sum =
-          "3203e256dab5981ca3301408574b63bc522a69972fbe9850b65b54ff44a96e0a"
-      , minSize = 10
-      }
-    , Distro::{
-      , name = "opensuse-leap-15.2"
-      , downloadURL =
-          "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.2/images/openSUSE-Leap-15.2-OpenStack.x86_64.qcow2"
-      , sha256Sum =
-          "a293bf8ca21d4a8c2c146f2c42327ad27032afc2e15f61e0f5c05be46613e991"
-      , minSize = 10
-      }
-    , Distro::{
       , name = "opensuse-leap-15.3"
       , downloadURL =
           "http://mirror.its.dal.ca/opensuse/distribution/leap/15.3/appliances/openSUSE-Leap-15.3-JeOS.x86_64-OpenStack-Cloud.qcow2"
@@ -167,11 +96,19 @@ in  [ Distro::{
       , minSize = 5
       }
     , Distro::{
+      , name = "opensuse-leap-15.4"
+      , downloadURL =
+          "http://mirror.its.dal.ca/opensuse/distribution/leap/15.4/appliances/openSUSE-Leap-15.4-JeOS.x86_64-15.4-OpenStack-Cloud-Build5.46.qcow2"
+      , sha256Sum =
+          "dd36668e2fc206d104ea43894f0a778f2312adee368dc2f6ef7738a7c8c4a686"
+      , minSize = 5
+      }
+    , Distro::{
       , name = "opensuse-tumbleweed"
       , downloadURL =
-          "https://download.opensuse.org/tumbleweed/appliances/openSUSE-Tumbleweed-JeOS.x86_64-OpenStack-Cloud.qcow2"
+          "https://download.opensuse.org/tumbleweed/appliances/openSUSE-Tumbleweed-JeOS.x86_64-15.1.0-OpenStack-Cloud-Snapshot20220204.qcow2"
       , sha256Sum =
-          "79e610bba3ed116556608f031c06e4b9260e3be2b193ce1727914ba213afac3f"
+          "d3ef72c231a02504732e60a3b3e016d743ecea4964c5b50ec2704e1238118e0a"
       , minSize = 5
       }
     , Distro::{
@@ -183,89 +120,20 @@ in  [ Distro::{
       , minSize = 10
       }
     , Distro::{
-      , name = "ubuntu-14.04"
-      , downloadURL =
-          "http://cloud-images.ubuntu.com/trusty/20191107/trusty-server-cloudimg-amd64-disk1.img"
-      , sha256Sum =
-          "3c4ad0defbe729dd3c16d2851d775575d1c5351c85734418d3b89bfdfd28ebd1"
-      , minSize = 5
-      }
-    , Distro::{
-      , name = "ubuntu-16.04"
-      , downloadURL =
-          "https://cloud-images.ubuntu.com/xenial/20210429/xenial-server-cloudimg-amd64-disk1.img"
-      , sha256Sum =
-          "50a21bc067c05e0c73bf5d8727ab61152340d93073b3dc32eff18b626f7d813b"
-      , minSize = 5
-      }
-    , Distro::{
       , name = "ubuntu-18.04"
       , downloadURL =
-          "http://cloud-images.ubuntu.com/bionic/20210720/bionic-server-cloudimg-amd64.img"
+          "http://cloud-images.ubuntu.com/bionic/20220131/bionic-server-cloudimg-amd64.img"
       , sha256Sum =
-          "c0bd5923b8edef2b32610a70ca99d92faebfbb1d8784c80328a45f7768433256"
-      , minSize = 5
-      }
-    , Distro::{
-      , name = "ubuntu-19.10"
-      , downloadURL =
-          "https://cloud-images.ubuntu.com/releases/eoan/release/ubuntu-19.10-server-cloudimg-amd64.img"
-      , sha256Sum =
-          "f0b499f0a7c8b5ca90ad12aa0b11a3643d5d272de02fabfd799eecb6227ec456"
+          "66f5c336b54b668fe64cb42b3b2f794327d64a376c414944234be51d61edeeec"
       , minSize = 5
       }
     , Distro::{
       , name = "ubuntu-20.04"
       , downloadURL =
-          "http://cloud-images.ubuntu.com/focal/20220118/focal-server-cloudimg-amd64.img"
+          "http://cloud-images.ubuntu.com/focal/20220204/focal-server-cloudimg-amd64.img"
       , sha256Sum =
-          "e1264d4cca6c6c537e92f4e676cdc3cddbc5d7fe627d1d439d7e6973ebc2e216"
+          "1d91ddc804dc201ba9a9f49def83fb4f40a76c3666e7daa50b38446a21b9543f"
       , minSize = 5
-      }
-    , Distro::{
-      , name = "ubuntu-20.10"
-      , downloadURL =
-          "https://cloud-images.ubuntu.com/groovy/20210604/groovy-server-cloudimg-amd64.img"
-      , sha256Sum =
-          "2196df5f153faf96443e5502bfdbcaa0baaefbaec614348fec344a241855b0ef"
-      , minSize = 5
-      }
-    , Distro::{
-      , name = "ubuntu-21.04"
-      , downloadURL =
-          "https://cloud-images.ubuntu.com/hirsute/20210909/hirsute-server-cloudimg-amd64.img"
-      , sha256Sum =
-          "259f5225fa45029210befad9f43f704bac8c27babcea1f97db30c54c14b98cb2"
-      , minSize = 5
-      }
-    , Distro::{
-      , name = "windows-server-2012-r2"
-      , downloadURL = "http://localhost:42069/windows2012r2.qcow2"
-      , sha256Sum = "xxxfakewindowsserver2012r2"
-      , minSize = 13
-      }
-    , Distro::{
-      , name = "windows-10-21h1"
-      , downloadURL = "http://tailnology/vms/win10-21h1-prepped.qcow2"
-      , sha256Sum =
-          "6637c1fe58d5ce13429e94d315e5a1c3580d1f0e379378c0bd49c5d7c4531100"
-      , minSize = 40
-      }
-    , Distro::{
-      , name = "dragonflybsd-6.0"
-      , downloadURL =
-          "https://object-storage.public.mtl1.vexxhost.net/swift/v1/1dbafeefbd4f4c80864414a441e72dd2/bsd-cloud-image.org/images/dragonflybsd/6.0.0/dragonflybsd-6.0.0-ufs.qcow2"
-      , sha256Sum =
-          "839c75b33e3c3a18ed3792dfd7123c3d39e9183fac085cda67cf4f4133c292e3"
-      , minSize = 4
-      }
-    , Distro::{
-      , name = "freebsd-12"
-      , downloadURL =
-          "https://object-storage.public.mtl1.vexxhost.net/swift/v1/1dbafeefbd4f4c80864414a441e72dd2/bsd-cloud-image.org/images/freebsd/12.2/freebsd-12.2.qcow2"
-      , sha256Sum =
-          "3c7c7fafe5c389b9295dcaab7a71c47cc30ad6e79e3a0c9cb164933ad2fb9814"
-      , minSize = 3
       }
     , Distro::{
       , name = "freebsd-13"
@@ -274,21 +142,5 @@ in  [ Distro::{
       , sha256Sum =
           "64d1d9a3aa4b0cf118c7338bf57ec62005a436a23d3f82499a786690275ee5ee"
       , minSize = 3
-      }
-    , Distro::{
-      , name = "netbsd-9.1"
-      , downloadURL =
-          "https://object-storage.public.mtl1.vexxhost.net/swift/v1/1dbafeefbd4f4c80864414a441e72dd2/bsd-cloud-image.org/images/netbsd/9.2/netbsd-9.2.qcow2"
-      , sha256Sum =
-          "653552edeba7b70041bdd1877f30c39ad933d80f1de1cc8d8b3f4e3eaf849687"
-      , minSize = 3
-      }
-    , Distro::{
-      , name = "openbsd-6.9"
-      , downloadURL =
-          "https://object-storage.public.mtl1.vexxhost.net/swift/v1/1dbafeefbd4f4c80864414a441e72dd2/bsd-cloud-image.org/images/openbsd/6.9/openbsd-6.9.qcow2"
-      , sha256Sum =
-          "bb52acb3770ef5caf3e941a38a0e47b785c5f148d4998c1d2945fc45920336e2"
-      , minSize = 4
       }
     ]
