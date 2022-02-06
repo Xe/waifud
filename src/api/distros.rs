@@ -1,10 +1,25 @@
 use crate::{models::Distro, Result, State};
-use axum::{extract::Extension, Json};
+use axum::{
+    extract::{Extension, Path},
+    Json,
+};
 use rusqlite::params;
 use std::sync::Arc;
 
 #[instrument(err)]
-pub async fn get_distros(Extension(state): Extension<Arc<State>>) -> Result<Json<Vec<Distro>>> {
+pub async fn delete(
+    Extension(state): Extension<Arc<State>>,
+    Path(name): Path<String>,
+) -> Result<()> {
+    let conn = state.0.lock().await;
+
+    conn.execute("DELETE FROM distros WHERE name = ?1", params![name])?;
+
+    Ok(())
+}
+
+#[instrument(err)]
+pub async fn list(Extension(state): Extension<Arc<State>>) -> Result<Json<Vec<Distro>>> {
     let conn = state.0.lock().await;
 
     let mut stmt =

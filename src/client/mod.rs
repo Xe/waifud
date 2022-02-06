@@ -1,4 +1,9 @@
-use crate::{api::libvirt::Machine, libvirt::NewInstance, models::Instance, Error};
+use crate::{
+    api::libvirt::Machine,
+    libvirt::NewInstance,
+    models::{Distro, Instance},
+    Result,
+};
 use std::time::Duration;
 use url::Url;
 use uuid::Uuid;
@@ -9,7 +14,7 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(base_url: String) -> Result<Self, Error> {
+    pub fn new(base_url: String) -> Result<Self> {
         let cli = reqwest::Client::builder()
             .connect_timeout(Duration::from_millis(500))
             .build()?;
@@ -20,7 +25,7 @@ impl Client {
         })
     }
 
-    pub async fn create_instance(&self, ni: NewInstance) -> Result<Instance, Error> {
+    pub async fn create_instance(&self, ni: NewInstance) -> Result<Instance> {
         let mut u = self.base_url.clone();
 
         u.set_path("/api/v1/instances");
@@ -37,16 +42,15 @@ impl Client {
         Ok(i)
     }
 
-    pub async fn delete_instance(&self, id: Uuid) -> Result<(), Error> {
+    pub async fn delete_instance(&self, id: Uuid) -> Result {
         let mut u = self.base_url.clone();
         u.set_path(&format!("/api/v1/instances/{}", id));
         self.cli.delete(u).send().await?.error_for_status()?;
         Ok(())
     }
 
-    pub async fn list_instances(&self) -> Result<Vec<Instance>, Error> {
+    pub async fn list_instances(&self) -> Result<Vec<Instance>> {
         let mut u = self.base_url.clone();
-
         u.set_path("/api/v1/instances");
         let instances: Vec<Instance> = self
             .cli
@@ -56,11 +60,10 @@ impl Client {
             .error_for_status()?
             .json()
             .await?;
-
         Ok(instances)
     }
 
-    pub async fn get_instance(&self, id: Uuid) -> Result<Instance, Error> {
+    pub async fn get_instance(&self, id: Uuid) -> Result<Instance> {
         let mut u = self.base_url.clone();
         u.set_path(&format!("/api/v1/instances/{}", id));
         let i: Instance = self
@@ -74,7 +77,7 @@ impl Client {
         Ok(i)
     }
 
-    pub async fn get_instance_machine(&self, id: Uuid) -> Result<Machine, Error> {
+    pub async fn get_instance_machine(&self, id: Uuid) -> Result<Machine> {
         let mut u = self.base_url.clone();
         u.set_path(&format!("/api/v1/instances/{}/machine", id));
         let m: Machine = self
@@ -86,5 +89,26 @@ impl Client {
             .json()
             .await?;
         Ok(m)
+    }
+
+    pub async fn list_distros(&self) -> Result<Vec<Distro>> {
+        let mut u = self.base_url.clone();
+        u.set_path("/api/v1/distros");
+        let distros: Vec<Distro> = self
+            .cli
+            .get(u)
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?;
+        Ok(distros)
+    }
+
+    pub async fn delete_distro(&self, name: String) -> Result {
+        let mut u = self.base_url.clone();
+        u.set_path(&format!("/api/v1/distros/{}", name));
+        self.cli.delete(u).send().await?.error_for_status()?;
+        Ok(())
     }
 }

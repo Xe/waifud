@@ -26,7 +26,11 @@ async fn main() -> Result {
 
     // build our application with a route
     let app = Router::new()
-        .route("/api/v1/distros", get(waifud::api::distros::get_distros))
+        .route("/api/v1/distros", get(waifud::api::distros::list))
+        .route(
+            "/api/v1/distros/:name",
+            delete(waifud::api::distros::delete),
+        )
         .route("/api/v1/instances", post(waifud::api::instances::make))
         .route("/api/v1/instances", get(waifud::api::instances::list))
         .route("/api/v1/instances/:id", get(waifud::api::instances::get))
