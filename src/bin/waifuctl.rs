@@ -202,7 +202,7 @@ async fn main() -> Result<()> {
 
     let cli = Client::new(opt.host)?;
 
-    match opt.cmd {
+    if let Err(why) = match opt.cmd {
         Command::Distro { cmd } => match cmd {
             DistroCmd::List { verbose } => list_distros(cli, verbose).await,
             DistroCmd::Delete { name } => delete_distro(cli, name).await,
@@ -210,5 +210,10 @@ async fn main() -> Result<()> {
         Command::List => list_instances(cli).await,
         Command::Create(opts) => create_instance(cli, opts).await,
         Command::Delete { name } => delete_instance(cli, name).await,
+    } {
+        eprintln!("OOPSIE WOOPSIE!! Uwu We made a fucky wucky!! A wittle fucko boingo! The code monkeys at our headquarters are working VEWY HAWD to fix this!");
+        eprintln!("{}", why);
     }
+
+    Ok(())
 }

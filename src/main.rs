@@ -31,7 +31,7 @@ async fn main() -> Result {
             "/api/v1/distros/:name",
             delete(waifud::api::distros::delete),
         )
-        .route("/api/v1/instances", post(waifud::api::instances::make))
+        .route("/api/v1/instances", post(waifud::api::instances::create))
         .route("/api/v1/instances", get(waifud::api::instances::list))
         .route("/api/v1/instances/:id", get(waifud::api::instances::get))
         .route(

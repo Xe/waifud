@@ -43,7 +43,7 @@ pub async fn delete(
 
             let dom = Domain::lookup_by_uuid_string(&conn, &id.to_string())?;
 
-            dom.shutdown()?;
+            dom.destroy()?;
             dom.undefine()?;
             Ok(())
         })
@@ -143,7 +143,7 @@ pub async fn list(Extension(state): Extension<Arc<State>>) -> Result<Json<Vec<In
 
 #[instrument(err)]
 #[axum_macros::debug_handler]
-pub async fn make(
+pub async fn create(
     Json(details): Json<NewInstance>,
     Extension(state): Extension<Arc<State>>,
 ) -> Result<Json<Instance>, Error> {
