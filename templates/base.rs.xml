@@ -83,6 +83,6 @@
   </devices>
   <qemu:commandline>
     <qemu:arg value="-smbios" />
-    <qemu:arg value="type=1,serial=ds=nocloud;h=@name" />
+    <qemu:arg value="type=1,serial=ds=nocloud-net;s=@seed" />
   </qemu:commandline>
 </domain>

@@ -18,6 +18,7 @@ pub fn establish_connection() -> Result<Connection> {
 pub type Result<T = (), E = Error> = std::result::Result<T, E>;
 
 pub mod api;
+pub mod libvirt;
 pub mod migrate;
 pub mod models;
 pub mod namegen;
@@ -41,6 +42,16 @@ pub enum Error {
 
     #[error("address parse error: {0}")]
     AddrParse(#[from] AddrParseError),
+
+    #[error("io error: {0}")]
+    IO(#[from] std::io::Error),
+
+    // Application errors
+    #[error("host {0} doesn't exist")]
+    HostDoesntExist(String),
+
+    #[error("can't download {0}: {1}")]
+    CantDownloadImage(String, String),
 }
 
 impl IntoResponse for Error {
@@ -61,9 +72,7 @@ impl Into<(StatusCode, String)> for Error {
                 }
                 _ => (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", err)),
             },
-            Error::TokioJoin(why) => (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", why)),
-            Error::Hyper(why) => (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", why)),
-            Error::AddrParse(why) => (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", why)),
+            _ => (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", self)),
         }
     }
 }

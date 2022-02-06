@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+#[derive(Debug, Default, Deserialize, Serialize)]
 pub struct Instance {
     pub uuid: Uuid,
     pub name: String,

@@ -1,7 +1,10 @@
 #[macro_use]
 extern crate tracing;
 
-use axum::{routing::get, AddExtensionLayer, Router};
+use axum::{
+    routing::{get, post},
+    AddExtensionLayer, Router,
+};
 use rusqlite::Connection;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -28,6 +31,7 @@ async fn main() -> Result {
     // build our application with a route
     let app = Router::new()
         .route("/api/v1/distros", get(waifud::api::distros::get_distros))
+        .route("/api/v1/instances", post(waifud::api::instances::make))
         .route(
             "/api/v1/libvirt/machines",
             get(waifud::api::libvirt::get_machines),
