@@ -2,7 +2,7 @@
 extern crate tracing;
 
 use axum::{
-    routing::{get, post},
+    routing::{delete, get, post},
     AddExtensionLayer, Router,
 };
 use std::sync::Arc;
@@ -27,6 +27,10 @@ async fn main() -> Result {
         .route("/api/v1/instances", post(waifud::api::instances::make))
         .route("/api/v1/instances", get(waifud::api::instances::list))
         .route("/api/v1/instances/:id", get(waifud::api::instances::get))
+        .route(
+            "/api/v1/instances/:id",
+            delete(waifud::api::instances::delete),
+        )
         .route(
             "/api/v1/instances/:id/machine",
             get(waifud::api::instances::get_machine),

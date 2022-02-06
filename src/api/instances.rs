@@ -22,6 +22,52 @@ use virt::{
 
 #[instrument(err)]
 #[axum_macros::debug_handler]
+pub async fn delete(
+    Path(id): Path<Uuid>,
+    Extension(state): Extension<Arc<State>>,
+) -> Result<(), Error> {
+    let conn = state.0.lock().await;
+
+    let info: Result<(String, String), Error> = {
+        let id = id.clone();
+        let mut stmt = conn.prepare("SELECT host, zvol_name FROM instances WHERE uuid = ?1")?;
+        let info: (String, String) =
+            stmt.query_row(params![id], |row| Ok((row.get(0)?, row.get(1)?)))?;
+        Ok(info)
+    };
+    let (host, zvol_name): (String, String) = info?;
+
+    let nuke: Result<(), Error> = {
+        let host = host.clone();
+        let id = id.clone();
+
+        spawn_blocking(move || {
+            let conn = Connect::open(&format!("qemu+ssh://root@{}/system", host))?;
+
+            let dom = Domain::lookup_by_uuid_string(&conn, &id.to_string())?;
+
+            dom.shutdown()?;
+            dom.undefine()?;
+            Ok(())
+        })
+        .await?
+    };
+    nuke?;
+
+    debug!("destroying zvol");
+    let output = Command::new("ssh")
+        .args([&host, "sudo", "zfs", "destroy", "-rf", &zvol_name])
+        .output()
+        .await?;
+
+    conn.execute("DELETE FROM instances WHERE uuid = ?1", params![id])?;
+    conn.execute("DELETE FROM cloudconfig_seeds WHERE uuid = ?1", params![id])?;
+
+    Ok(())
+}
+
+#[instrument(err)]
+#[axum_macros::debug_handler]
 pub async fn get_machine(
     Path(id): Path<Uuid>,
     Extension(state): Extension<Arc<State>>,
@@ -241,7 +287,6 @@ pub async fn make(
         return Err(Error::CantMakeInitSnapshot(details.host.clone(), stderr));
     }
 
-    let conn = state.0.lock().await;
     conn.execute(
         "INSERT INTO cloudconfig_seeds(uuid, user_data) VALUES (?1, ?2)",
         params![id.clone(), details.user_data.clone().unwrap()],
@@ -267,7 +312,7 @@ pub async fn make(
     let buf = String::from_utf8(buf).unwrap();
     trace!("libvirt xml:\n{}", buf);
 
-    let addr: Result<Option<String>, Error> = {
+    let addr: Result<(), Error> = {
         let details = details.clone();
         spawn_blocking(move || {
             debug!("connecting to host");
@@ -278,22 +323,7 @@ pub async fn make(
 
             debug!("starting domain");
             dom.create()?;
-
-            debug!("waiting for DHCP");
-            std::thread::sleep(Duration::from_millis(2000));
-
-            let mut addr: Vec<String> = dom
-                .interface_addresses(VIR_DOMAIN_INTERFACE_ADDRESSES_SRC_LEASE, 0)?
-                .into_iter()
-                .filter(|iface| iface.addrs.clone().get(0).is_some())
-                .map(|iface| iface.addrs.clone().get(0).unwrap().clone().addr)
-                .collect();
-
-            if addr.get(0).is_none() {
-                Ok(None)
-            } else {
-                Ok(Some(addr.swap_remove(0)))
-            }
+            Ok(())
         })
         .await?
     };
@@ -318,7 +348,6 @@ pub async fn make(
 
     {
         let ins = ins.clone();
-        let conn = state.0.lock().await;
         conn.execute(
             "INSERT INTO instances(uuid, name, host, mac_address, memory, disk_size, zvol_name) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
             params![
