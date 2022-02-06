@@ -1,2 +1,11 @@
-#cloud-config-jsonp
-[{ "op": "set", "path": "/final_message", "value": "waifud is online <3"}]
+#cloud-config
+write_files:
+- owner: root:root
+  path: /etc/update-motd.d/69-waifud
+  permissions: '0755'
+  content: |
+    #!/bin/sh
+    #
+    # This file is written by waifud.
+    echo ""
+    echo "Welcome to waifud <3"

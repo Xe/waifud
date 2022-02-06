@@ -50,8 +50,17 @@ pub enum Error {
     #[error("host {0} doesn't exist")]
     HostDoesntExist(String),
 
-    #[error("can't download {0}: {1}")]
+    #[error("can't download {0}:\n\n{1}")]
     CantDownloadImage(String, String),
+
+    #[error("can't create zfs zvol on {0}:\n\n{1}")]
+    CantMakeZvol(String, String),
+
+    #[error("can't hydrate zfs zvol on {0}:\n\n{1}")]
+    CantHydrateZvol(String, String),
+
+    #[error("can't create zfs init snapshot on {0}:\n\n{1}")]
+    CantMakeInitSnapshot(String, String),
 }
 
 impl IntoResponse for Error {

@@ -1,13 +1,15 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Clone)]
 pub struct Instance {
     pub uuid: Uuid,
     pub name: String,
     pub host: String,
+    pub mac_address: String,
     pub memory: i32,
     pub disk_size: i32,
+    pub zvol_name: String,
 }
 
 pub struct CloudconfigSeed {

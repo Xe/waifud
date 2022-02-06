@@ -19,7 +19,7 @@ pub async fn meta_data(Path(id): Path<Uuid>) -> Result<String, Error> {
     let conn = crate::establish_connection()?;
 
     let hostname: String = conn.query_row(
-        "SELECT hostname FROM instances WHERE uuid = ?1",
+        "SELECT name FROM instances WHERE uuid = ?1",
         params![id],
         |row| row.get(0),
     )?;

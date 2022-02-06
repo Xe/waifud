@@ -1,4 +1,4 @@
-@(name: String, uuid: String, mac_address: String, zvol: String, sata: bool, memory: i32, cpus: i32, seed: String):
+@(name: String, uuid: String, mac_address: String, zvol: String, sata: bool, memory: i32, cpus: i32, seed: String)
 <domain type="kvm" xmlns:qemu='http://libvirt.org/schemas/domain/qemu/1.0'>
   <name>@name</name>
   <uuid>@uuid</uuid>
@@ -36,18 +36,12 @@
     <emulator>/run/libvirt/nix-emulators/qemu-system-x86_64</emulator>
     <disk type="block" device="disk">
       <driver name="qemu" type="raw" cache="none" io="native"/>
-      <source dev="/dev/zvol/@zvol"/>
+      <source dev="/dev/zvol/@zvol/@name"/>
       @if sata {
       <target dev="sda" bus="sata"/>
       } else {
       <target dev="vda" bus="virtio"/>
       }
-    </disk>
-    <disk type="file" device="cdrom">
-      <driver name="qemu" type="raw"/>
-      <source file="@seed"/>
-      <target dev="sdb" bus="sata"/>
-      <readonly/>
     </disk>
     <controller type="usb" model="qemu-xhci" ports="15"/>
     <interface type="network">
