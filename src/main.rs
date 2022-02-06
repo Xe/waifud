@@ -8,7 +8,7 @@ use axum::{
 use std::sync::Arc;
 use tower::limit::ConcurrencyLimitLayer;
 use tower_http::trace::TraceLayer;
-use waifud::{Result, State};
+use waifud::{Config, Result, State};
 
 #[tokio::main]
 async fn main() -> Result {
@@ -16,10 +16,13 @@ async fn main() -> Result {
 
     waifud::migrate::run()?;
 
+    let cfg: Config = serde_dhall::from_file("./config.dhall").parse()?;
+
     let middleware = tower::ServiceBuilder::new()
         .layer(TraceLayer::new_for_http())
         .layer(ConcurrencyLimitLayer::new(64))
-        .layer(AddExtensionLayer::new(Arc::new(State::new()?)));
+        .layer(AddExtensionLayer::new(Arc::new(State::new()?)))
+        .layer(AddExtensionLayer::new(Arc::new(cfg)));
 
     // build our application with a route
     let app = Router::new()

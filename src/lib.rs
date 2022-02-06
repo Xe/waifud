@@ -6,7 +6,11 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use rusqlite::Connection;
-use std::{env, fmt, net::AddrParseError};
+use serde::{Deserialize, Serialize};
+use std::{
+    env, fmt,
+    net::{AddrParseError, IpAddr},
+};
 use tokio::sync::Mutex;
 
 pub const APPLICATION_NAME: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
@@ -19,6 +23,7 @@ pub fn establish_connection() -> Result<Connection> {
 pub type Result<T = (), E = Error> = std::result::Result<T, E>;
 
 pub mod api;
+pub mod client;
 pub mod libvirt;
 pub mod migrate;
 pub mod models;
@@ -36,6 +41,16 @@ impl State {
     pub fn new() -> Result<Self> {
         Ok(State(Mutex::new(establish_connection()?)))
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Config {
+    #[serde(rename = "baseURL")]
+    base_url: String,
+    hosts: Vec<String>,
+    #[serde(rename = "bindHost")]
+    bind_host: IpAddr,
+    port: u16,
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -61,15 +76,30 @@ pub enum Error {
     #[error("io error: {0}")]
     IO(#[from] std::io::Error),
 
+    #[error("reqwest error: {0}")]
+    Reqwest(#[from] reqwest::Error),
+
+    #[error("url error: {0}")]
+    URL(#[from] url::ParseError),
+
+    #[error("{0}")]
+    Catchall(#[from] anyhow::Error),
+
     // Application errors
     #[error("host {0} doesn't exist")]
     HostDoesntExist(String),
+
+    #[error("instance {0} doesn't exist")]
+    InstanceDoesntExist(String),
 
     #[error("can't download {0}:\n\n{1}")]
     CantDownloadImage(String, String),
 
     #[error("can't create zfs zvol on {0}:\n\n{1}")]
     CantMakeZvol(String, String),
+
+    #[error("can't delete zfs zvol on {0}:\n\n{1}")]
+    CantDeleteZvol(String, String),
 
     #[error("can't hydrate zfs zvol on {0}:\n\n{1}")]
     CantHydrateZvol(String, String),

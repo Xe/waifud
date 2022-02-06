@@ -13,12 +13,9 @@ use std::{
     convert::TryFrom, net::SocketAddr, os::unix::prelude::ExitStatusExt, process::ExitStatus,
     sync::Arc, time::Duration,
 };
-use tokio::{net::lookup_host, process::Command, task::spawn_blocking};
+use tokio::{net::lookup_host, process::Command, task::spawn_blocking, time::sleep};
 use uuid::Uuid;
-use virt::{
-    connect::Connect,
-    domain::{Domain, VIR_DOMAIN_INTERFACE_ADDRESSES_SRC_LEASE},
-};
+use virt::{connect::Connect, domain::Domain};
 
 #[instrument(err)]
 #[axum_macros::debug_handler]
@@ -54,11 +51,17 @@ pub async fn delete(
     };
     nuke?;
 
+    sleep(Duration::from_millis(500)).await;
+
     debug!("destroying zvol");
     let output = Command::new("ssh")
         .args([&host, "sudo", "zfs", "destroy", "-rf", &zvol_name])
         .output()
         .await?;
+    if output.status != ExitStatus::from_raw(0) {
+        let stderr = String::from_utf8(output.stderr).unwrap();
+        return Err(Error::CantDeleteZvol(host.clone(), stderr));
+    }
 
     conn.execute("DELETE FROM instances WHERE uuid = ?1", params![id])?;
     conn.execute("DELETE FROM cloudconfig_seeds WHERE uuid = ?1", params![id])?;

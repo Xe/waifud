@@ -1,7 +1,7 @@
-use crate::{Error, Result};
-use axum::Json;
+use crate::{Config, Error, Result};
+use axum::{extract::Extension, Json};
 use serde::{Deserialize, Serialize};
-use std::convert::TryFrom;
+use std::{convert::TryFrom, sync::Arc};
 use virt::{connect::Connect, domain::Domain};
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -54,10 +54,10 @@ impl TryFrom<Domain> for Machine {
     }
 }
 
-#[instrument(err)]
-pub async fn get_machines() -> Result<Json<Vec<Machine>>> {
+#[instrument(err, skip(cfg))]
+pub async fn get_machines(Extension(cfg): Extension<Arc<Config>>) -> Result<Json<Vec<Machine>>> {
     let mut result = Vec::new();
-    for host in &["kos-mos", "logos", "ontos", "pneuma"] {
+    for host in &cfg.hosts {
         result.extend_from_slice(&list_all_vms(
             &format!("qemu+ssh://root@{}/system", host),
             host.to_string(),

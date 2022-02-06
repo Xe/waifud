@@ -17,13 +17,15 @@ mac_address = "1"
 rand = "0.8"
 serde_dhall = "0.11"
 serde_json = "1"
+structopt = "0.3"
+tabular = "0.2"
 thiserror = "1"
 tracing = "0.1"
 tracing-futures = "0.2"
 tracing-log = "0.1"
 tracing-subscriber = "0.2"
-uuid = { version = "0.8", features = [ "serde", "v4" ] }
 virt = { git = "https://gitlab.com/libvirt/libvirt-rust.git" }
+url = "2"
 
 [dependencies.rusqlite]
 version = "0.25.1"
@@ -32,6 +34,10 @@ features = [ "bundled", "uuid", "serde_json" ]
 [dependencies.serde]
 version = "1"
 features = [ "derive" ]
+
+[dependencies.reqwest]
+version = "0.11"
+features = [ "json" ]
 
 [dependencies.tokio]
 version = "1"
@@ -44,6 +50,10 @@ features = [ "full" ]
 [dependencies.tower-http]
 version = "0.2"
 features = [ "full" ]
+
+[dependencies.uuid]
+version = "0.8"
+features = [ "serde", "v4" ]
 
 [build-dependencies]
 ructe = { version = "0.13" }
