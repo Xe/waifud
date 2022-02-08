@@ -2,7 +2,7 @@ use crate::{
     api::libvirt::Machine,
     libvirt::{random_mac, NewInstance},
     models::{Distro, Instance},
-    namegen, Error, State,
+    namegen, Config, Error, State,
 };
 use axum::{
     extract::{Extension, Path},
@@ -146,6 +146,7 @@ pub async fn list(Extension(state): Extension<Arc<State>>) -> Result<Json<Vec<In
 pub async fn create(
     Json(details): Json<NewInstance>,
     Extension(state): Extension<Arc<State>>,
+    Extension(config): Extension<Arc<Config>>,
 ) -> Result<Json<Instance>, Error> {
     let id = Uuid::new_v4();
 
@@ -309,7 +310,7 @@ pub async fn create(
         details.sata.unwrap(),
         details.memory_mb.unwrap() * 1024,
         details.cpus.unwrap(),
-        format!("http://100.87.242.16:23818/api/cloudinit/{}/", id),
+        format!("{}/api/cloudinit/{}/", config.clone().base_url, id),
     )?;
 
     let buf = String::from_utf8(buf).unwrap();
