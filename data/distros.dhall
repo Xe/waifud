@@ -135,12 +135,4 @@ in  [ Distro::{
           "1d91ddc804dc201ba9a9f49def83fb4f40a76c3666e7daa50b38446a21b9543f"
       , minSize = 5
       }
-    , Distro::{
-      , name = "freebsd-13"
-      , downloadURL =
-          "https://object-storage.public.mtl1.vexxhost.net/swift/v1/1dbafeefbd4f4c80864414a441e72dd2/bsd-cloud-image.org/images/freebsd/13.0/freebsd-13.0-ufs.qcow2"
-      , sha256Sum =
-          "64d1d9a3aa4b0cf118c7338bf57ec62005a436a23d3f82499a786690275ee5ee"
-      , minSize = 3
-      }
     ]
