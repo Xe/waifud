@@ -27,9 +27,8 @@ impl Client {
 
     pub async fn create_instance(&self, ni: NewInstance) -> Result<Instance> {
         let mut u = self.base_url.clone();
-
         u.set_path("/api/v1/instances");
-        let i: Instance = self
+        Ok(self
             .cli
             .post(u)
             .json(&ni)
@@ -37,9 +36,7 @@ impl Client {
             .await?
             .error_for_status()?
             .json()
-            .await?;
-
-        Ok(i)
+            .await?)
     }
 
     pub async fn delete_instance(&self, id: Uuid) -> Result {
@@ -52,49 +49,59 @@ impl Client {
     pub async fn list_instances(&self) -> Result<Vec<Instance>> {
         let mut u = self.base_url.clone();
         u.set_path("/api/v1/instances");
-        let instances: Vec<Instance> = self
+        Ok(self
             .cli
             .get(u)
             .send()
             .await?
             .error_for_status()?
             .json()
-            .await?;
-        Ok(instances)
+            .await?)
     }
 
     pub async fn get_instance(&self, id: Uuid) -> Result<Instance> {
         let mut u = self.base_url.clone();
         u.set_path(&format!("/api/v1/instances/{}", id));
-        let i: Instance = self
+        Ok(self
             .cli
             .get(u)
             .send()
             .await?
             .error_for_status()?
             .json()
-            .await?;
-        Ok(i)
+            .await?)
+    }
+
+    pub async fn get_instance_by_name(&self, name: String) -> Result<Instance> {
+        let mut u = self.base_url.clone();
+        u.set_path(&format!("/api/v1/instances/name/{}", name));
+        Ok(self
+            .cli
+            .get(u)
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?)
     }
 
     pub async fn get_instance_machine(&self, id: Uuid) -> Result<Machine> {
         let mut u = self.base_url.clone();
         u.set_path(&format!("/api/v1/instances/{}/machine", id));
-        let m: Machine = self
+        Ok(self
             .cli
             .get(u)
             .send()
             .await?
             .error_for_status()?
             .json()
-            .await?;
-        Ok(m)
+            .await?)
     }
 
     pub async fn create_distro(&self, d: Distro) -> Result<Distro> {
         let mut u = self.base_url.clone();
         u.set_path("/api/v1/distros");
-        let d: Distro = self
+        Ok(self
             .cli
             .post(u)
             .json(&d)
@@ -102,22 +109,47 @@ impl Client {
             .await?
             .error_for_status()?
             .json()
-            .await?;
-        Ok(d)
+            .await?)
     }
 
     pub async fn list_distros(&self) -> Result<Vec<Distro>> {
         let mut u = self.base_url.clone();
         u.set_path("/api/v1/distros");
-        let distros: Vec<Distro> = self
+        Ok(self
             .cli
             .get(u)
             .send()
             .await?
             .error_for_status()?
             .json()
-            .await?;
-        Ok(distros)
+            .await?)
+    }
+
+    pub async fn update_distro(&self, d: Distro) -> Result<Distro> {
+        let mut u = self.base_url.clone();
+        u.set_path(&format!("/api/v1/distros/{}", d.name));
+        Ok(self
+            .cli
+            .post(u)
+            .json(&d)
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?)
+    }
+
+    pub async fn get_distro(&self, name: String) -> Result<Distro> {
+        let mut u = self.base_url.clone();
+        u.set_path(&format!("/api/v1/distros/{}", name));
+        Ok(self
+            .cli
+            .get(u)
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?)
     }
 
     pub async fn delete_distro(&self, name: String) -> Result {

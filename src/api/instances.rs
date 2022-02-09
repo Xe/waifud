@@ -88,6 +88,32 @@ pub async fn get_machine(
 
 #[instrument(err)]
 #[axum_macros::debug_handler]
+pub async fn get_by_name(
+    Path(name): Path<String>,
+    Extension(state): Extension<Arc<State>>,
+) -> Result<Json<Instance>, Error> {
+    let conn = state.0.lock().await;
+
+    let mut stmt = conn.prepare(
+        "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name FROM instances WHERE name = ?1",
+    )?;
+    let instance = stmt.query_row(params![name], |row| {
+        Ok(Instance {
+            uuid: row.get(0)?,
+            name: row.get(1)?,
+            host: row.get(2)?,
+            mac_address: row.get(3)?,
+            memory: row.get(4)?,
+            disk_size: row.get(5)?,
+            zvol_name: row.get(6)?,
+        })
+    })?;
+
+    Ok(Json(instance))
+}
+
+#[instrument(err)]
+#[axum_macros::debug_handler]
 pub async fn get(
     Path(id): Path<Uuid>,
     Extension(state): Extension<Arc<State>>,

@@ -28,6 +28,11 @@ async fn main() -> Result {
     let app = Router::new()
         .route("/api/v1/distros", get(waifud::api::distros::list))
         .route("/api/v1/distros", post(waifud::api::distros::create))
+        .route("/api/v1/distros/:name", post(waifud::api::distros::update))
+        .route(
+            "/api/v1/distros/:name",
+            get(waifud::api::distros::get_by_name),
+        )
         .route(
             "/api/v1/distros/:name",
             delete(waifud::api::distros::delete),
@@ -35,6 +40,10 @@ async fn main() -> Result {
         .route("/api/v1/instances", post(waifud::api::instances::create))
         .route("/api/v1/instances", get(waifud::api::instances::list))
         .route("/api/v1/instances/:id", get(waifud::api::instances::get))
+        .route(
+            "/api/v1/instances/name/:name",
+            get(waifud::api::instances::get_by_name),
+        )
         .route(
             "/api/v1/instances/:id",
             delete(waifud::api::instances::delete),

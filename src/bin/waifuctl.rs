@@ -1,24 +1,28 @@
 #[macro_use]
 extern crate tracing;
 
-use std::{convert::TryInto, fs, path::PathBuf, time::Duration};
+use serde::{Deserialize, Serialize};
+use serde_dhall::StaticType;
+use std::{convert::TryInto, fs, io::Write, path::PathBuf, process::exit, time::Duration};
 use structopt::StructOpt;
 use tabular::{row, Table};
-use waifud::{
-    client::Client,
-    libvirt::NewInstance,
-    models::{Distro, Instance},
-    Error, Result,
-};
+use waifud::{client::Client, libvirt::NewInstance, models::Distro, Error, Result};
 
 #[derive(StructOpt, Debug)]
 /// waifuctl lets you manage VM instances on waifud.
 struct Opt {
     /// waifud host to connect to
     #[structopt(short, long)]
-    host: String,
+    pub host: Option<String>,
     #[structopt(subcommand)]
     cmd: Command,
+}
+
+#[derive(StructOpt, Deserialize, Serialize, Debug, StaticType)]
+struct Config {
+    /// waifud host to connect to
+    #[structopt(short, long)]
+    pub host: String,
 }
 
 #[derive(StructOpt, Debug)]
@@ -96,19 +100,21 @@ impl TryInto<NewInstance> for CreateOpts {
 /// Manage distribution images in waifud
 #[derive(StructOpt, Debug)]
 enum DistroCmd {
-    /// Create a new distro from details you provide
+    /// Create a new base distro snapshot
     Create(CreateDistroOpts),
+    /// Delete a distro image
+    Delete { name: String },
     /// List all distros
     List {
         /// Show more information
         #[structopt(short)]
         verbose: bool,
     },
-    /// Delete a distro image
-    Delete { name: String },
+    /// Updates a base distro snapshot
+    Update(CreateDistroOpts),
 }
 
-/// Create a new distro snapshot for waifud to use
+/// Defines a base distro snapshot for waifud to use
 #[derive(StructOpt, Debug)]
 struct CreateDistroOpts {
     /// Distribution name, include the version as a suffix
@@ -190,17 +196,12 @@ async fn create_instance(cli: Client, opts: CreateOpts) -> Result {
 }
 
 async fn delete_instance(cli: Client, name: String) -> Result {
-    let instances = cli.list_instances().await?;
-    let instances = instances
-        .into_iter()
-        .filter(|i| i.name == name)
-        .collect::<Vec<Instance>>();
-    let i = instances.get(0);
+    let i = cli.get_instance_by_name(name.clone()).await;
 
     match i {
-        Some(i) => cli.delete_instance(i.uuid).await?,
-        None => {
-            eprintln!("no instance named {} was found", name);
+        Ok(i) => cli.delete_instance(i.uuid).await?,
+        Err(why) => {
+            eprintln!("no instance named {} was found: {}", name, why);
             return Err(Error::InstanceDoesntExist(name));
         }
     };
@@ -211,6 +212,19 @@ async fn delete_instance(cli: Client, name: String) -> Result {
 async fn create_distro(cli: Client, opts: CreateDistroOpts) -> Result {
     let d: Distro = opts.into();
     let d = cli.create_distro(d).await?;
+    println!("created {}", d.name);
+
+    Ok(())
+}
+
+async fn update_distro(cli: Client, opts: CreateDistroOpts) -> Result {
+    if let Err(why) = cli.get_distro(opts.name.clone()).await {
+        println!("can't get distro {}: {}", opts.name, why);
+        exit(1);
+    }
+
+    let d: Distro = opts.into();
+    let d = cli.update_distro(d).await?;
     println!("created {}", d.name);
 
     Ok(())
@@ -233,7 +247,9 @@ async fn list_distros(cli: Client, verbose: bool) -> Result {
 
         println!("{}", table);
     } else {
-        distros.iter().for_each(|d| println!("{}", d.name));
+        distros
+            .iter()
+            .for_each(|d| println!("{}, min disk size: {}GB", d.name, d.min_size));
     }
 
     Ok(())
@@ -248,16 +264,37 @@ async fn delete_distro(cli: Client, name: String) -> Result<()> {
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
 
-    let opt = Opt::from_args();
+    let mut opt = Opt::from_args();
     debug!("{:?}", opt);
 
-    let cli = Client::new(opt.host)?;
+    if opt.host.is_none() {
+        let mut fname = dirs::config_dir().unwrap();
+        fname.push("xeserv");
+        let _ = fs::create_dir_all(&fname);
+        fname.push("waifuctl");
+        fname.set_extension("dhall");
+
+        if let Err(_) = fs::metadata(&fname) {
+            let mut fout = fs::File::create(&fname).unwrap();
+            let cfg = serde_dhall::serialize(&Config {
+                host: "http://[::]:23818".into(),
+            })
+            .static_type_annotation()
+            .to_string()?;
+            fout.write_all(cfg.as_bytes())?;
+        }
+
+        opt.host = Some(serde_dhall::from_file(&fname).parse::<Config>()?.host);
+    }
+
+    let cli = Client::new(opt.host.unwrap())?;
 
     if let Err(why) = match opt.cmd {
         Command::Distro { cmd } => match cmd {
             DistroCmd::Create(opts) => create_distro(cli, opts).await,
             DistroCmd::Delete { name } => delete_distro(cli, name).await,
             DistroCmd::List { verbose } => list_distros(cli, verbose).await,
+            DistroCmd::Update(opts) => update_distro(cli, opts).await,
         },
         Command::List => list_instances(cli).await,
         Command::Create(opts) => create_instance(cli, opts).await,

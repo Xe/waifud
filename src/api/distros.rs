@@ -20,8 +20,48 @@ pub async fn create(
 
     let d = distro.clone();
     conn.execute(
-        "INSERT INTO distros (name, download_url, sha256sum, min_size, format) VALUES (?1, ?2, ?3, ?4, ?5)",
+        "INSERT INTO distros
+                   ( name
+                   , download_url
+                   , sha256sum
+                   , min_size
+                   , format
+                   )
+         VALUES
+           ( ?1
+           , ?2
+           , ?3
+           , ?4
+           , ?5
+           )",
         params![d.name, d.download_url, d.sha256sum, d.min_size, d.format],
+    )?;
+
+    Ok(Json(distro))
+}
+
+#[instrument(err)]
+pub async fn update(
+    Path(name): Path<String>,
+    Extension(state): Extension<Arc<State>>,
+    Json(distro): Json<Distro>,
+) -> Result<Json<Distro>> {
+    let conn = state.0.lock().await;
+
+    let mut distro = distro;
+    if distro.format == "".to_string() {
+        distro.format = "waifud://qcow2".into();
+    }
+
+    let d = distro.clone();
+    conn.execute(
+        "UPDATE distros
+         SET download_url = ?1
+           , sha256sum    = ?2
+           , min_size     = ?3
+           , format       = ?4
+         WHERE name = ?5",
+        params![d.download_url, d.sha256sum, d.min_size, d.format, d.name],
     )?;
 
     Ok(Json(distro))
@@ -40,11 +80,41 @@ pub async fn delete(
 }
 
 #[instrument(err)]
+pub async fn get_by_name(
+    Extension(state): Extension<Arc<State>>,
+    Path(name): Path<String>,
+) -> Result<Json<Distro>> {
+    let conn = state.0.lock().await;
+
+    Ok(Json(conn.query_row(
+        "SELECT
+           name
+         , download_url
+         , sha256sum
+         , min_size
+         , format
+         FROM distros
+         WHERE name = ?1",
+        params![name],
+        |row| {
+            Ok(Distro {
+                name: row.get(0)?,
+                download_url: row.get(1)?,
+                sha256sum: row.get(2)?,
+                min_size: row.get(3)?,
+                format: row.get(4)?,
+            })
+        },
+    )?))
+}
+
+#[instrument(err)]
 pub async fn list(Extension(state): Extension<Arc<State>>) -> Result<Json<Vec<Distro>>> {
     let conn = state.0.lock().await;
 
-    let mut stmt =
-        conn.prepare("SELECT name, download_url, sha256sum, min_size, format FROM distros")?;
+    let mut stmt = conn.prepare(
+        "SELECT name, download_url, sha256sum, min_size, format FROM distros ORDER BY name ASC",
+    )?;
     let iter = stmt.query_map(params![], |row| {
         Ok(Distro {
             name: row.get(0)?,
