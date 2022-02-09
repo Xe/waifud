@@ -11,7 +11,7 @@ pub async fn create(
     Extension(state): Extension<Arc<State>>,
     Json(distro): Json<Distro>,
 ) -> Result<Json<Distro>> {
-    let conn = state.0.lock().await;
+    let conn = state.pool.get().await?;
 
     let mut distro = distro;
     if distro.format == "".to_string() {
@@ -46,7 +46,7 @@ pub async fn update(
     Extension(state): Extension<Arc<State>>,
     Json(distro): Json<Distro>,
 ) -> Result<Json<Distro>> {
-    let conn = state.0.lock().await;
+    let conn = state.pool.get().await?;
 
     let mut distro = distro;
     if distro.format == "".to_string() {
@@ -72,7 +72,7 @@ pub async fn delete(
     Extension(state): Extension<Arc<State>>,
     Path(name): Path<String>,
 ) -> Result<()> {
-    let conn = state.0.lock().await;
+    let conn = state.pool.get().await?;
 
     conn.execute("DELETE FROM distros WHERE name = ?1", params![name])?;
 
@@ -84,7 +84,7 @@ pub async fn get_by_name(
     Extension(state): Extension<Arc<State>>,
     Path(name): Path<String>,
 ) -> Result<Json<Distro>> {
-    let conn = state.0.lock().await;
+    let conn = state.pool.get().await?;
 
     Ok(Json(conn.query_row(
         "SELECT
@@ -110,7 +110,7 @@ pub async fn get_by_name(
 
 #[instrument(err)]
 pub async fn list(Extension(state): Extension<Arc<State>>) -> Result<Json<Vec<Distro>>> {
-    let conn = state.0.lock().await;
+    let conn = state.pool.get().await?;
 
     let mut stmt = conn.prepare(
         "SELECT name, download_url, sha256sum, min_size, format FROM distros ORDER BY name ASC",

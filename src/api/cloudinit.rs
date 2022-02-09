@@ -9,7 +9,7 @@ pub async fn user_data(
     Path(id): Path<Uuid>,
     Extension(state): Extension<Arc<State>>,
 ) -> Result<String, Error> {
-    let conn = state.0.lock().await;
+    let conn = state.pool.get().await?;
 
     Ok(conn.query_row(
         "SELECT user_data FROM cloudconfig_seeds WHERE uuid = ?1",
@@ -23,7 +23,7 @@ pub async fn meta_data(
     Path(id): Path<Uuid>,
     Extension(state): Extension<Arc<State>>,
 ) -> Result<String, Error> {
-    let conn = state.0.lock().await;
+    let conn = state.pool.get().await?;
 
     let hostname: String = conn.query_row(
         "SELECT name FROM instances WHERE uuid = ?1",

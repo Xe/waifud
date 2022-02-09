@@ -23,7 +23,7 @@ pub async fn delete(
     Path(id): Path<Uuid>,
     Extension(state): Extension<Arc<State>>,
 ) -> Result<(), Error> {
-    let conn = state.0.lock().await;
+    let conn = state.pool.get().await?;
 
     let info: Result<(String, String), Error> = {
         let id = id.clone();
@@ -75,7 +75,7 @@ pub async fn get_machine(
     Path(id): Path<Uuid>,
     Extension(state): Extension<Arc<State>>,
 ) -> Result<Json<Machine>, Error> {
-    let conn = state.0.lock().await;
+    let conn = state.pool.get().await?;
 
     let mut stmt = conn.prepare("SELECT host FROM instances WHERE uuid = ?1")?;
     let host: String = stmt.query_row(params![id], |row| row.get(0))?;
@@ -92,7 +92,7 @@ pub async fn get_by_name(
     Path(name): Path<String>,
     Extension(state): Extension<Arc<State>>,
 ) -> Result<Json<Instance>, Error> {
-    let conn = state.0.lock().await;
+    let conn = state.pool.get().await?;
 
     let mut stmt = conn.prepare(
         "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name FROM instances WHERE name = ?1",
@@ -118,7 +118,7 @@ pub async fn get(
     Path(id): Path<Uuid>,
     Extension(state): Extension<Arc<State>>,
 ) -> Result<Json<Instance>, Error> {
-    let conn = state.0.lock().await;
+    let conn = state.pool.get().await?;
 
     let mut stmt = conn.prepare(
         "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name FROM instances WHERE uuid = ?1",
@@ -141,7 +141,7 @@ pub async fn get(
 #[instrument(err)]
 #[axum_macros::debug_handler]
 pub async fn list(Extension(state): Extension<Arc<State>>) -> Result<Json<Vec<Instance>>, Error> {
-    let conn = state.0.lock().await;
+    let conn = state.pool.get().await?;
 
     let mut result: Vec<Instance> = Vec::new();
 
@@ -183,7 +183,7 @@ pub async fn create(
         return Err(Error::HostDoesntExist(details.host));
     }
 
-    let conn = state.0.lock().await;
+    let conn = state.pool.get().await?;
 
     let distro = conn.query_row(
         "SELECT name, download_url, sha256sum, min_size, format FROM distros WHERE name = ?1",

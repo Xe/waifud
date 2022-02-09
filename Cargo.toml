@@ -1,8 +1,8 @@
 [package]
 name = "waifud"
 version = "0.1.0"
-authors = [ "Christine Dodrill <me@christine.website>" ]
-edition = "2018"
+authors = [ "Xe Iaso <me@christine.website>" ]
+edition = "2021"
 build = "src/build.rs"
 repository = "https://github.com/Xe/waifud"
 
@@ -12,6 +12,7 @@ repository = "https://github.com/Xe/waifud"
 anyhow = "1"
 axum = "0.4"
 axum-macros = "0.1"
+bb8 = "0.7"
 dirs = "4"
 hyper = "0.14"
 mac_address = "1"
@@ -25,11 +26,13 @@ tracing = "0.1"
 tracing-futures = "0.2"
 tracing-log = "0.1"
 tracing-subscriber = "0.2"
-virt = { git = "https://gitlab.com/libvirt/libvirt-rust.git" }
 url = "2"
 
+bb8-rusqlite = { git = "https://github.com/pleshevskiy/bb8-rusqlite", branch = "bump-rusqlite" }
+virt = { git = "https://gitlab.com/libvirt/libvirt-rust.git" }
+
 [dependencies.rusqlite]
-version = "0.25.1"
+version = "0.26"
 features = [ "bundled", "uuid", "serde_json" ]
 
 [dependencies.serde]

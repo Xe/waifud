@@ -21,7 +21,7 @@ async fn main() -> Result {
     let middleware = tower::ServiceBuilder::new()
         .layer(TraceLayer::new_for_http())
         .layer(ConcurrencyLimitLayer::new(64))
-        .layer(AddExtensionLayer::new(Arc::new(State::new()?)))
+        .layer(AddExtensionLayer::new(Arc::new(State::new().await?)))
         .layer(AddExtensionLayer::new(Arc::new(cfg)));
 
     // build our application with a route

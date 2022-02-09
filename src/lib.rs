@@ -5,13 +5,14 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
+use bb8::Pool;
+use bb8_rusqlite::RusqliteConnectionManager;
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use std::{
     env, fmt,
     net::{AddrParseError, IpAddr},
 };
-use tokio::sync::Mutex;
 
 pub const APPLICATION_NAME: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 
@@ -29,7 +30,9 @@ pub mod migrate;
 pub mod models;
 pub mod namegen;
 
-pub struct State(Mutex<Connection>);
+pub struct State {
+    pub pool: Pool<RusqliteConnectionManager>,
+}
 
 impl fmt::Debug for State {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -38,8 +41,12 @@ impl fmt::Debug for State {
 }
 
 impl State {
-    pub fn new() -> Result<Self> {
-        Ok(State(Mutex::new(establish_connection()?)))
+    pub async fn new() -> Result<Self> {
+        let mgr = RusqliteConnectionManager::new(
+            env::var("DATABASE_URL").unwrap_or("./var/waifud.db".to_string()),
+        );
+        let pool = bb8::Pool::builder().build(mgr).await?;
+        Ok(State { pool })
     }
 }
 
@@ -64,6 +71,9 @@ pub enum Error {
     #[error("database error: {0}")]
     SQLite(#[from] rusqlite::Error),
 
+    #[error("database pool error: {0}")]
+    SQLitePool(#[from] bb8_rusqlite::Error),
+
     #[error("internal tokio error: {0}")]
     TokioJoin(#[from] tokio::task::JoinError),
 
@@ -82,8 +92,8 @@ pub enum Error {
     #[error("url error: {0}")]
     URL(#[from] url::ParseError),
 
-    #[error("{0}")]
-    Catchall(#[from] anyhow::Error),
+    #[error("other error: {0}")]
+    Catchall(String),
 
     // Application errors
     #[error("host {0} doesn't exist")]
@@ -106,6 +116,15 @@ pub enum Error {
 
     #[error("can't create zfs init snapshot on {0}:\n\n{1}")]
     CantMakeInitSnapshot(String, String),
+}
+
+impl<E> From<bb8::RunError<E>> for Error
+where
+    E: std::error::Error + Send + 'static,
+{
+    fn from(err: bb8::RunError<E>) -> Self {
+        Self::Catchall(format!("{}", err))
+    }
 }
 
 impl IntoResponse for Error {
