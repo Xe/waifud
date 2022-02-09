@@ -88,6 +88,22 @@ in  [ Distro::{
       , minSize = 5
       }
     , Distro::{
+      , name = "nixos-21.11"
+      , downloadURL =
+          "https://xena.greedo.xeserv.us/pkg/nixos/nixos-21.11-within-2022-02-08-08-37.qcow2"
+      , sha256Sum =
+          "1d7fb8a2dad803e52935e191421f502bbf1b611d22f011d62d02254fb36b627d"
+      , minSize = 8
+      }
+    , Distro::{
+      , name = "nixos-unstable"
+      , downloadURL =
+          "https://xena.greedo.xeserv.us/pkg/nixos/nixos-unstable-within-2022-02-08-08-37.qcow2"
+      , sha256Sum =
+          "2ba68d1f299f8152993adac809d52ba244d5442840f4ecbdb12f8a69fdcfc672"
+      , minSize = 8
+      }
+    , Distro::{
       , name = "opensuse-leap-15.3"
       , downloadURL =
           "http://mirror.its.dal.ca/opensuse/distribution/leap/15.3/appliances/openSUSE-Leap-15.3-JeOS.x86_64-OpenStack-Cloud.qcow2"
