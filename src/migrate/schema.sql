@@ -10,6 +10,22 @@ CREATE TABLE IF NOT EXISTS instances
   , distro TEXT NOT NULL
   );
 
+CREATE TABLE IF NOT EXISTS audit_logs
+  ( id INTEGER PRIMARY KEY AUTOINCREMENT
+  , ts INTEGER NOT NULL DEFAULT (STRFTIME('%s', 'now'))
+  , kind TEXT NOT NULL
+  , op TEXT NOT NULL
+  , data TEXT
+  , uuid TEXT GENERATED ALWAYS AS (json_extract(data, '$.uuid'))
+  , name TEXT GENERATED ALWAYS AS (json_extract(data, '$.name'))
+  );
+
+CREATE INDEX IF NOT EXISTS audit_logs_uuid
+  ON audit_logs(uuid);
+
+CREATE INDEX IF NOT EXISTS audit_logs_name
+  ON audit_logs(name);
+
 CREATE TABLE IF NOT EXISTS cloudconfig_seeds
   ( uuid TEXT PRIMARY KEY NOT NULL
   , user_data TEXT NOT NULL

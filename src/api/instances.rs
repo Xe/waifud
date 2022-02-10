@@ -25,18 +25,11 @@ pub async fn delete(
 ) -> Result<(), Error> {
     let conn = state.pool.get().await?;
 
-    let info: Result<(String, String), Error> = {
-        let id = id.clone();
-        let mut stmt = conn.prepare("SELECT host, zvol_name FROM instances WHERE uuid = ?1")?;
-        let info: (String, String) =
-            stmt.query_row(params![id], |row| Ok((row.get(0)?, row.get(1)?)))?;
-        Ok(info)
-    };
-    let (host, zvol_name): (String, String) = info?;
+    let i = Instance::from_uuid(&conn, id)?;
 
     let nuke: Result<(), Error> = {
-        let host = host.clone();
-        let id = id.clone();
+        let host = i.host.clone();
+        let id = i.uuid.clone();
 
         spawn_blocking(move || {
             let conn = Connect::open(&format!("qemu+ssh://root@{}/system", host))?;
@@ -55,16 +48,20 @@ pub async fn delete(
 
     debug!("destroying zvol");
     let output = Command::new("ssh")
-        .args([&host, "sudo", "zfs", "destroy", "-rf", &zvol_name])
+        .args([&i.host, "sudo", "zfs", "destroy", "-rf", &i.zvol_name])
         .output()
         .await?;
     if output.status != ExitStatus::from_raw(0) {
         let stderr = String::from_utf8(output.stderr).unwrap();
-        return Err(Error::CantDeleteZvol(host.clone(), stderr));
+        return Err(Error::CantDeleteZvol(i.host.clone(), stderr));
     }
 
     conn.execute("DELETE FROM instances WHERE uuid = ?1", params![id])?;
     conn.execute("DELETE FROM cloudconfig_seeds WHERE uuid = ?1", params![id])?;
+    conn.execute(
+        "INSERT INTO audit_logs(kind, op, data) VALUES (?1, ?2, ?3)",
+        params!["instance", "delete", serde_json::to_string(&i)?],
+    )?;
 
     Ok(())
 }
@@ -94,10 +91,8 @@ pub async fn hard_reboot(
 ) -> Result<(), Error> {
     let conn = state.pool.get().await?;
 
-    let mut stmt = conn.prepare("SELECT host FROM instances WHERE uuid = ?1")?;
-    let host: String = stmt.query_row(params![id], |row| row.get(0))?;
-
-    let vc = Connect::open(&format!("qemu+ssh://root@{}/system", host))?;
+    let i = Instance::from_uuid(&conn, id)?;
+    let vc = Connect::open(&format!("qemu+ssh://root@{}/system", i.host))?;
 
     let dom = Domain::lookup_by_uuid_string(&vc, &id.to_string())?;
 
@@ -107,6 +102,10 @@ pub async fn hard_reboot(
     conn.execute(
         "UPDATE instances SET status = ?1 WHERE uuid = ?2",
         params!["rebooting", id],
+    )?;
+    conn.execute(
+        "INSERT INTO audit_logs(kind, op, data) VALUES (?1, ?2, ?3)",
+        params!["instance", "hard reboot", serde_json::to_string(&i)?],
     )?;
 
     Ok(())
@@ -120,10 +119,8 @@ pub async fn shutdown(
 ) -> Result<(), Error> {
     let conn = state.pool.get().await?;
 
-    let mut stmt = conn.prepare("SELECT host FROM instances WHERE uuid = ?1")?;
-    let host: String = stmt.query_row(params![id], |row| row.get(0))?;
-
-    let vc = Connect::open(&format!("qemu+ssh://root@{}/system", host))?;
+    let i = Instance::from_uuid(&conn, id)?;
+    let vc = Connect::open(&format!("qemu+ssh://root@{}/system", i.host))?;
 
     let dom = Domain::lookup_by_uuid_string(&vc, &id.to_string())?;
     dom.shutdown()?;
@@ -131,6 +128,10 @@ pub async fn shutdown(
     conn.execute(
         "UPDATE instances SET status = ?1 WHERE uuid = ?2",
         params!["off", id],
+    )?;
+    conn.execute(
+        "INSERT INTO audit_logs(kind, op, data) VALUES (?1, ?2, ?3)",
+        params!["instance", "shutdown", serde_json::to_string(&i)?],
     )?;
 
     Ok(())
@@ -144,10 +145,8 @@ pub async fn start(
 ) -> Result<(), Error> {
     let conn = state.pool.get().await?;
 
-    let mut stmt = conn.prepare("SELECT host FROM instances WHERE uuid = ?1")?;
-    let host: String = stmt.query_row(params![id], |row| row.get(0))?;
-
-    let vc = Connect::open(&format!("qemu+ssh://root@{}/system", host))?;
+    let i = Instance::from_uuid(&conn, id)?;
+    let vc = Connect::open(&format!("qemu+ssh://root@{}/system", i.host))?;
 
     let dom = Domain::lookup_by_uuid_string(&vc, &id.to_string())?;
     dom.create()?;
@@ -155,6 +154,10 @@ pub async fn start(
     conn.execute(
         "UPDATE instances SET status = ?1 WHERE uuid = ?2",
         params!["starting", id],
+    )?;
+    conn.execute(
+        "INSERT INTO audit_logs(kind, op, data) VALUES (?1, ?2, ?3)",
+        params!["instance", "start", serde_json::to_string(&i)?],
     )?;
 
     Ok(())
@@ -168,10 +171,8 @@ pub async fn reboot(
 ) -> Result<(), Error> {
     let conn = state.pool.get().await?;
 
-    let mut stmt = conn.prepare("SELECT host FROM instances WHERE uuid = ?1")?;
-    let host: String = stmt.query_row(params![id], |row| row.get(0))?;
-
-    let vc = Connect::open(&format!("qemu+ssh://root@{}/system", host))?;
+    let i = Instance::from_uuid(&conn, id)?;
+    let vc = Connect::open(&format!("qemu+ssh://root@{}/system", i.host))?;
 
     let dom = Domain::lookup_by_uuid_string(&vc, &id.to_string())?;
     dom.reboot(0)?;
@@ -179,6 +180,10 @@ pub async fn reboot(
     conn.execute(
         "UPDATE instances SET status = ?1 WHERE uuid = ?2",
         params!["rebooting", id],
+    )?;
+    conn.execute(
+        "INSERT INTO audit_logs(kind, op, data) VALUES (?1, ?2, ?3)",
+        params!["instance", "reboot", serde_json::to_string(&i)?],
     )?;
 
     Ok(())
@@ -192,24 +197,7 @@ pub async fn get_by_name(
 ) -> Result<Json<Instance>, Error> {
     let conn = state.pool.get().await?;
 
-    let mut stmt = conn.prepare(
-        "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name, status, distro FROM instances WHERE name = ?1",
-    )?;
-    let instance = stmt.query_row(params![name], |row| {
-        Ok(Instance {
-            uuid: row.get(0)?,
-            name: row.get(1)?,
-            host: row.get(2)?,
-            mac_address: row.get(3)?,
-            memory: row.get(4)?,
-            disk_size: row.get(5)?,
-            zvol_name: row.get(6)?,
-            status: row.get(7)?,
-            distro: row.get(8)?,
-        })
-    })?;
-
-    Ok(Json(instance))
+    Ok(Json(Instance::from_name(&conn, name)?))
 }
 
 #[instrument(err)]
@@ -220,24 +208,7 @@ pub async fn get(
 ) -> Result<Json<Instance>, Error> {
     let conn = state.pool.get().await?;
 
-    let mut stmt = conn.prepare(
-        "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name, status, distro FROM instances WHERE uuid = ?1",
-    )?;
-    let instance = stmt.query_row(params![id], |row| {
-        Ok(Instance {
-            uuid: row.get(0)?,
-            name: row.get(1)?,
-            host: row.get(2)?,
-            mac_address: row.get(3)?,
-            memory: row.get(4)?,
-            disk_size: row.get(5)?,
-            zvol_name: row.get(6)?,
-            status: row.get(7)?,
-            distro: row.get(8)?,
-        })
-    })?;
-
-    Ok(Json(instance))
+    Ok(Json(Instance::from_uuid(&conn, id)?))
 }
 
 #[instrument(err)]
@@ -352,6 +323,10 @@ pub async fn create(
                 ins.distro,
             ],
         )?;
+        conn.execute(
+            "INSERT INTO audit_logs(kind, op, data) VALUES (?1, ?2, ?3)",
+            params!["instance", "create", serde_json::to_string(&ins)?],
+        )?;
 
         conn.execute(
             "INSERT INTO cloudconfig_seeds(uuid, user_data) VALUES (?1, ?2)",
@@ -361,11 +336,15 @@ pub async fn create(
 
     drop(conn);
 
-    tokio::spawn(async move {
-        if let Err(why) = make_instance(config, state, details, distro, mac_addr, id).await {
-            error!("can't make instance: {}", why);
-        }
-    });
+    {
+        let ins = ins.clone();
+        tokio::spawn(async move {
+            if let Err(why) = make_instance(config, state, details, ins, distro, mac_addr, id).await
+            {
+                error!("can't make instance: {}", why);
+            }
+        });
+    }
 
     Ok(Json(ins))
 }
@@ -374,11 +353,13 @@ async fn make_instance(
     config: Arc<Config>,
     state: Arc<State>,
     details: NewInstance,
+    ins: Instance,
     distro: Distro,
     mac_addr: String,
     id: Uuid,
 ) -> Result<(), Error> {
     let conn = state.pool.get().await?;
+    let mut ins = ins.clone();
 
     debug!("name: {}", details.name.as_ref().unwrap());
 
@@ -393,9 +374,14 @@ async fn make_instance(
         .await?;
     if output.status != ExitStatus::from_raw(0) {
         debug!("downloading image");
+        ins.status = "downloading image".into();
         conn.execute(
             "UPDATE instances SET status = ?1 WHERE uuid = ?2",
-            params!["downloading image", id],
+            params![ins.status, id],
+        )?;
+        conn.execute(
+            "INSERT INTO audit_logs(kind, op, data) VALUES (?1, ?2, ?3)",
+            params!["instance", ins.status, serde_json::to_string(&ins)?],
         )?;
         let output = Command::new("ssh")
             .args([
@@ -447,9 +433,14 @@ async fn make_instance(
         return Err(Error::CantMakeZvol(details.host.clone(), stderr));
     }
     debug!("hydrating zvol");
+    ins.status = "hydrating zvol".into();
     conn.execute(
         "UPDATE instances SET status = ?1 WHERE uuid = ?2",
-        params!["hydrating zvol", id],
+        params![ins.status, id],
+    )?;
+    conn.execute(
+        "INSERT INTO audit_logs(kind, op, data) VALUES (?1, ?2, ?3)",
+        params!["instance", ins.status, serde_json::to_string(&ins)?],
     )?;
     let output = Command::new("ssh")
         .args([
@@ -529,9 +520,14 @@ async fn make_instance(
 
     debug!("ip: {:?}", addr);
 
+    ins.status = "waiting for cloud-init".into();
     conn.execute(
         "UPDATE instances SET status = ?1 WHERE uuid = ?2",
-        params!["waiting for cloud-init", id],
+        params![ins.status, id],
+    )?;
+    conn.execute(
+        "INSERT INTO audit_logs(kind, op, data) VALUES (?1, ?2, ?3)",
+        params!["instance", ins.status, serde_json::to_string(&ins)?],
     )?;
 
     Ok(())

@@ -68,6 +68,9 @@ pub enum Error {
     #[error("dhall parsing error: {0}")]
     Dhall(#[from] serde_dhall::Error),
 
+    #[error("json parsing error: {0}")]
+    Json(#[from] serde_json::Error),
+
     #[error("database error: {0}")]
     SQLite(#[from] rusqlite::Error),
 

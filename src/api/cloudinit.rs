@@ -1,4 +1,4 @@
-use crate::{Error, State};
+use crate::{models::Instance, Error, State};
 use axum::extract::{Extension, Path};
 use rusqlite::params;
 use std::sync::Arc;
@@ -14,6 +14,11 @@ pub async fn user_data(
     conn.execute(
         "UPDATE instances SET status = ?1 WHERE uuid = ?2",
         params!["running", id],
+    )?;
+    let ins = Instance::from_uuid(&conn, id)?;
+    conn.execute(
+        "INSERT INTO audit_logs(kind, op, data) VALUES (?1, ?2, ?3)",
+        params!["instance", "running", serde_json::to_string(&ins)?],
     )?;
 
     Ok(conn.query_row(

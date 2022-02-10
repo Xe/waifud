@@ -18,9 +18,10 @@ pub async fn create(
         distro.format = "waifud://qcow2".into();
     }
 
-    let d = distro.clone();
-    conn.execute(
-        "INSERT INTO distros
+    {
+        let d = distro.clone();
+        conn.execute(
+            "INSERT INTO distros
                    ( name
                    , download_url
                    , sha256sum
@@ -34,7 +35,13 @@ pub async fn create(
            , ?4
            , ?5
            )",
-        params![d.name, d.download_url, d.sha256sum, d.min_size, d.format],
+            params![d.name, d.download_url, d.sha256sum, d.min_size, d.format],
+        )?;
+    }
+
+    conn.execute(
+        "INSERT INTO audit_logs(kind, op, data) VALUES (?1, ?2, ?3)",
+        params!["distro", "create", serde_json::to_string(&distro)?],
     )?;
 
     Ok(Json(distro))
@@ -64,6 +71,11 @@ pub async fn update(
         params![d.download_url, d.sha256sum, d.min_size, d.format, d.name],
     )?;
 
+    conn.execute(
+        "INSERT INTO audit_logs(kind, op, data) VALUES (?1, ?2, ?3)",
+        params!["distro", "update", serde_json::to_string(&d)?],
+    )?;
+
     Ok(Json(distro))
 }
 
@@ -74,7 +86,13 @@ pub async fn delete(
 ) -> Result<()> {
     let conn = state.pool.get().await?;
 
-    conn.execute("DELETE FROM distros WHERE name = ?1", params![name])?;
+    let d = Distro::from_name(&conn, name)?;
+    conn.execute("DELETE FROM distros WHERE name = ?1", params![d.name])?;
+
+    conn.execute(
+        "INSERT INTO audit_logs(kind, op, data) VALUES (?1, ?2, ?3)",
+        params!["distro", "update", serde_json::to_string(&d)?],
+    )?;
 
     Ok(())
 }
