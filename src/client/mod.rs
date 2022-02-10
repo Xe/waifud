@@ -98,6 +98,34 @@ impl Client {
             .await?)
     }
 
+    pub async fn shutdown_instance(&self, id: Uuid) -> Result<()> {
+        let mut u = self.base_url.clone();
+        u.set_path(&format!("/api/v1/instances/{}/shutdown", id));
+        self.cli.post(u).send().await?.error_for_status()?;
+        Ok(())
+    }
+
+    pub async fn start_instance(&self, id: Uuid) -> Result<()> {
+        let mut u = self.base_url.clone();
+        u.set_path(&format!("/api/v1/instances/{}/start", id));
+        self.cli.post(u).send().await?.error_for_status()?;
+        Ok(())
+    }
+
+    pub async fn hard_reboot_instance(&self, id: Uuid) -> Result<()> {
+        let mut u = self.base_url.clone();
+        u.set_path(&format!("/api/v1/instances/{}/hardreboot", id));
+        self.cli.post(u).send().await?.error_for_status()?;
+        Ok(())
+    }
+
+    pub async fn reboot_instance(&self, id: Uuid) -> Result<()> {
+        let mut u = self.base_url.clone();
+        u.set_path(&format!("/api/v1/instances/{}/reboot", id));
+        self.cli.post(u).send().await?.error_for_status()?;
+        Ok(())
+    }
+
     pub async fn create_distro(&self, d: Distro) -> Result<Distro> {
         let mut u = self.base_url.clone();
         u.set_path("/api/v1/distros");

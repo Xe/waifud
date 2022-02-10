@@ -37,6 +37,22 @@ async fn main() -> Result {
         .route("/api/v1/instances", get(waifud::api::instances::list))
         .route("/api/v1/instances/:id", get(waifud::api::instances::get))
         .route(
+            "/api/v1/instances/:id/reboot",
+            post(waifud::api::instances::reboot),
+        )
+        .route(
+            "/api/v1/instances/:id/start",
+            post(waifud::api::instances::start),
+        )
+        .route(
+            "/api/v1/instances/:id/shutdown",
+            post(waifud::api::instances::shutdown),
+        )
+        .route(
+            "/api/v1/instances/:id/hardreboot",
+            post(waifud::api::instances::hard_reboot),
+        )
+        .route(
             "/api/v1/instances/name/:name",
             get(waifud::api::instances::get_by_name),
         )

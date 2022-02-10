@@ -13,7 +13,12 @@ use std::{
 };
 use structopt::StructOpt;
 use tabular::{row, Table};
-use waifud::{client::Client, libvirt::NewInstance, models::Distro, Error, Result};
+use waifud::{
+    client::Client,
+    libvirt::NewInstance,
+    models::{Distro, Instance},
+    Error, Result,
+};
 
 #[derive(StructOpt, Debug)]
 /// waifuctl lets you manage VM instances on waifud.
@@ -45,6 +50,25 @@ enum Command {
     Distro {
         #[structopt(subcommand)]
         cmd: DistroCmd,
+    },
+    /// Turn an instance on
+    Start {
+        /// Instance name
+        name: String,
+    },
+    /// Turn an instance off
+    Shutdown {
+        /// Instance name
+        name: String,
+    },
+    /// Manually trigger instance reboot
+    Reboot {
+        /// Instance name
+        name: String,
+
+        /// Unsafely force reboot
+        #[structopt(short, long)]
+        hard: bool,
     },
 }
 
@@ -183,22 +207,71 @@ async fn list_instances(cli: Client) -> Result {
     Ok(())
 }
 
-async fn create_instance(cli: Client, opts: CreateOpts) -> Result {
-    let ni: NewInstance = opts.try_into()?;
-    let mut i = cli.create_instance(ni).await?;
-
-    println!("created instance {} on {}", i.name, i.host);
+async fn wait_until_status<T>(cli: &Client, i: Instance, want: T) -> Result
+where
+    T: Into<String>,
+{
+    let want = want.into();
+    let mut i = i.clone();
 
     loop {
         i = cli.get_instance(i.uuid).await?;
         io::stdout().flush()?;
         print!("\r{}: {}", i.name, i.status);
-        if &i.status == "running" {
+        if i.status == want {
             break;
         }
 
         tokio::time::sleep(Duration::from_millis(1000)).await;
     }
+
+    io::stdout().flush()?;
+    print!("\n");
+    Ok(())
+}
+
+async fn start_instance(cli: Client, name: String) -> Result {
+    let i = cli.get_instance_by_name(name).await?;
+
+    cli.start_instance(i.uuid).await?;
+
+    wait_until_status(&cli, i.clone(), "running").await?;
+    println!("{} is running", i.name);
+
+    Ok(())
+}
+
+async fn shutdown_instance(cli: Client, name: String) -> Result {
+    let i = cli.get_instance_by_name(name).await?;
+
+    cli.shutdown_instance(i.uuid).await?;
+
+    println!("shut down {}", i.name);
+
+    Ok(())
+}
+
+async fn reboot_instance(cli: Client, name: String, hard: bool) -> Result {
+    let i = cli.get_instance_by_name(name).await?;
+
+    if hard {
+        cli.hard_reboot_instance(i.uuid).await
+    } else {
+        cli.reboot_instance(i.uuid).await
+    }?;
+
+    wait_until_status(&cli, i, "running").await?;
+
+    Ok(())
+}
+
+async fn create_instance(cli: Client, opts: CreateOpts) -> Result {
+    let ni: NewInstance = opts.try_into()?;
+    let i = cli.create_instance(ni).await?;
+
+    println!("created instance {} on {}", i.name, i.host);
+
+    wait_until_status(&cli, i.clone(), "running").await?;
 
     let m = cli.get_instance_machine(i.uuid).await?;
 
@@ -319,6 +392,9 @@ async fn main() -> Result<()> {
         Command::List => list_instances(cli).await,
         Command::Create(opts) => create_instance(cli, opts).await,
         Command::Delete { name } => delete_instance(cli, name).await,
+        Command::Reboot { name, hard } => reboot_instance(cli, name, hard).await,
+        Command::Start { name } => start_instance(cli, name).await,
+        Command::Shutdown { name } => shutdown_instance(cli, name).await,
     } {
         eprintln!("OOPSIE WOOPSIE!! Uwu We made a fucky wucky!! A wittle fucko boingo! The code monkeys at our headquarters are working VEWY HAWD to fix this!");
         eprintln!("{}", why);

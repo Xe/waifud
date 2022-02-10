@@ -88,6 +88,104 @@ pub async fn get_machine(
 
 #[instrument(err)]
 #[axum_macros::debug_handler]
+pub async fn hard_reboot(
+    Path(id): Path<Uuid>,
+    Extension(state): Extension<Arc<State>>,
+) -> Result<(), Error> {
+    let conn = state.pool.get().await?;
+
+    let mut stmt = conn.prepare("SELECT host FROM instances WHERE uuid = ?1")?;
+    let host: String = stmt.query_row(params![id], |row| row.get(0))?;
+
+    let vc = Connect::open(&format!("qemu+ssh://root@{}/system", host))?;
+
+    let dom = Domain::lookup_by_uuid_string(&vc, &id.to_string())?;
+
+    dom.destroy()?;
+    dom.create()?;
+
+    conn.execute(
+        "UPDATE instances SET status = ?1 WHERE uuid = ?2",
+        params!["rebooting", id],
+    )?;
+
+    Ok(())
+}
+
+#[instrument(err)]
+#[axum_macros::debug_handler]
+pub async fn shutdown(
+    Path(id): Path<Uuid>,
+    Extension(state): Extension<Arc<State>>,
+) -> Result<(), Error> {
+    let conn = state.pool.get().await?;
+
+    let mut stmt = conn.prepare("SELECT host FROM instances WHERE uuid = ?1")?;
+    let host: String = stmt.query_row(params![id], |row| row.get(0))?;
+
+    let vc = Connect::open(&format!("qemu+ssh://root@{}/system", host))?;
+
+    let dom = Domain::lookup_by_uuid_string(&vc, &id.to_string())?;
+    dom.shutdown()?;
+
+    conn.execute(
+        "UPDATE instances SET status = ?1 WHERE uuid = ?2",
+        params!["off", id],
+    )?;
+
+    Ok(())
+}
+
+#[instrument(err)]
+#[axum_macros::debug_handler]
+pub async fn start(
+    Path(id): Path<Uuid>,
+    Extension(state): Extension<Arc<State>>,
+) -> Result<(), Error> {
+    let conn = state.pool.get().await?;
+
+    let mut stmt = conn.prepare("SELECT host FROM instances WHERE uuid = ?1")?;
+    let host: String = stmt.query_row(params![id], |row| row.get(0))?;
+
+    let vc = Connect::open(&format!("qemu+ssh://root@{}/system", host))?;
+
+    let dom = Domain::lookup_by_uuid_string(&vc, &id.to_string())?;
+    dom.create()?;
+
+    conn.execute(
+        "UPDATE instances SET status = ?1 WHERE uuid = ?2",
+        params!["starting", id],
+    )?;
+
+    Ok(())
+}
+
+#[instrument(err)]
+#[axum_macros::debug_handler]
+pub async fn reboot(
+    Path(id): Path<Uuid>,
+    Extension(state): Extension<Arc<State>>,
+) -> Result<(), Error> {
+    let conn = state.pool.get().await?;
+
+    let mut stmt = conn.prepare("SELECT host FROM instances WHERE uuid = ?1")?;
+    let host: String = stmt.query_row(params![id], |row| row.get(0))?;
+
+    let vc = Connect::open(&format!("qemu+ssh://root@{}/system", host))?;
+
+    let dom = Domain::lookup_by_uuid_string(&vc, &id.to_string())?;
+    dom.reboot(0)?;
+
+    conn.execute(
+        "UPDATE instances SET status = ?1 WHERE uuid = ?2",
+        params!["rebooting", id],
+    )?;
+
+    Ok(())
+}
+
+#[instrument(err)]
+#[axum_macros::debug_handler]
 pub async fn get_by_name(
     Path(name): Path<String>,
     Extension(state): Extension<Arc<State>>,
