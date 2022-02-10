@@ -80,6 +80,14 @@ in  [ Distro::{
       , minSize = 10
       }
     , Distro::{
+      , name = "debian-11"
+      , downloadURL =
+          "https://cloud.debian.org/images/cloud/bullseye/20220121-894/debian-11-generic-amd64-20220121-894.qcow2"
+      , sha256Sum =
+          "2fc7337acbe3533293450498ce445b08e5d26493044dc7fc7daa267d015a3814"
+      , minSize = 2
+      }
+    , Distro::{
       , name = "fedora-35"
       , downloadURL =
           "https://mirror.dst.ca/fedora/releases/35/Cloud/x86_64/images/Fedora-Cloud-Base-35-1.2.x86_64.qcow2"
