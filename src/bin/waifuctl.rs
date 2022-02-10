@@ -264,9 +264,12 @@ async fn list_distros(cli: Client, verbose: bool) -> Result {
 
         println!("{}", table);
     } else {
-        distros
-            .iter()
-            .for_each(|d| println!("{}, min disk size: {}GB", d.name, d.min_size));
+        let mut table = Table::new("{:<}  {:<}");
+        table.add_row(row!("name", "disk GB"));
+        distros.into_iter().for_each(|d| {
+            table.add_row(row!(d.name, d.min_size.to_string()));
+        });
+        println!("{}", table);
     }
 
     Ok(())
