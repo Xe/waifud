@@ -217,7 +217,7 @@ where
     loop {
         i = cli.get_instance(i.uuid).await?;
         io::stdout().flush()?;
-        print!("\r{}: {}", i.name, i.status);
+        print!("{}: {}   \r", i.name, i.status);
         if i.status == want {
             break;
         }
