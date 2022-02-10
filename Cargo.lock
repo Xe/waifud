@@ -172,6 +172,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "axum-extra"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "faf73a23dc664faf208c01937ab3b3a597e241000b673e478fdc80d7623801da"
+dependencies = [
+ "axum",
+ "bytes",
+ "http",
+ "mime",
+ "pin-project-lite",
+ "tower",
+ "tower-http",
+ "tower-layer",
+ "tower-service",
+]
+
+[[package]]
 name = "axum-macros"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2287,6 +2304,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
+ "axum-extra",
  "axum-macros",
  "bb8",
  "bb8-rusqlite",

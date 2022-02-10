@@ -80,7 +80,7 @@ pub async fn delete(
 }
 
 #[instrument(err)]
-pub async fn get_by_name(
+pub async fn get(
     Extension(state): Extension<Arc<State>>,
     Path(name): Path<String>,
 ) -> Result<Json<Distro>> {

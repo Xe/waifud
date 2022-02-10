@@ -95,6 +95,9 @@ pub enum Error {
     #[error("other error: {0}")]
     Catchall(String),
 
+    #[error("{0}")]
+    Anyhow(#[from] anyhow::Error),
+
     // Application errors
     #[error("host {0} doesn't exist")]
     HostDoesntExist(String),

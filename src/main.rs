@@ -24,15 +24,11 @@ async fn main() -> Result {
         .layer(AddExtensionLayer::new(Arc::new(State::new().await?)))
         .layer(AddExtensionLayer::new(Arc::new(cfg)));
 
-    // build our application with a route
     let app = Router::new()
         .route("/api/v1/distros", get(waifud::api::distros::list))
         .route("/api/v1/distros", post(waifud::api::distros::create))
         .route("/api/v1/distros/:name", post(waifud::api::distros::update))
-        .route(
-            "/api/v1/distros/:name",
-            get(waifud::api::distros::get_by_name),
-        )
+        .route("/api/v1/distros/:name", get(waifud::api::distros::get))
         .route(
             "/api/v1/distros/:name",
             delete(waifud::api::distros::delete),
@@ -70,7 +66,6 @@ async fn main() -> Result {
         )
         .layer(middleware);
 
-    // run it
     let addr = &"[::]:23818".parse()?;
     info!("listening on {}", addr);
     axum::Server::bind(addr)
