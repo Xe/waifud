@@ -3,7 +3,14 @@ extern crate tracing;
 
 use serde::{Deserialize, Serialize};
 use serde_dhall::StaticType;
-use std::{convert::TryInto, fs, io::Write, path::PathBuf, process::exit, time::Duration};
+use std::{
+    convert::TryInto,
+    fs,
+    io::{self, Write},
+    path::PathBuf,
+    process::exit,
+    time::Duration,
+};
 use structopt::StructOpt;
 use tabular::{row, Table};
 use waifud::{client::Client, libvirt::NewInstance, models::Distro, Error, Result};
@@ -153,16 +160,20 @@ impl Into<Distro> for CreateDistroOpts {
 async fn list_instances(cli: Client) -> Result {
     let instances = cli.list_instances().await?;
 
-    let mut table = Table::new("{:>}  {:<}  {:<}  {:<}  {:<}");
-    table.add_row(row!("name", "host", "memory", "ip", "id"));
+    let mut table = Table::new("{:>}  {:<}  {:<}  {:<}  {:<}  {:<}  {:<}");
+    table.add_row(row!(
+        "name", "host", "distro", "memory", "ip", "status", "id"
+    ));
     for instance in instances {
         let m = cli.get_instance_machine(instance.uuid).await?;
 
         table.add_row(row!(
             instance.name,
             instance.host,
+            instance.distro,
             instance.memory,
             m.addr.unwrap_or("".into()),
+            instance.status,
             instance.uuid,
         ));
     }
@@ -174,23 +185,29 @@ async fn list_instances(cli: Client) -> Result {
 
 async fn create_instance(cli: Client, opts: CreateOpts) -> Result {
     let ni: NewInstance = opts.try_into()?;
-    let i = cli.create_instance(ni).await?;
+    let mut i = cli.create_instance(ni).await?;
 
-    println!(
-        "created instance {} on {}, waiting for IP address",
-        i.name, i.host
-    );
+    println!("created instance {} on {}", i.name, i.host);
 
     loop {
-        let m = cli.get_instance_machine(i.uuid).await?;
-        if m.addr.is_none() {
-            tokio::time::sleep(Duration::from_millis(1000)).await;
-            continue;
+        i = cli.get_instance(i.uuid).await?;
+        io::stdout().flush()?;
+        print!("\r{}: {}", i.name, i.status);
+        if &i.status == "running" {
+            break;
         }
 
-        println!("IP address: {}", m.addr.unwrap());
-        break;
+        tokio::time::sleep(Duration::from_millis(1000)).await;
     }
+
+    let m = cli.get_instance_machine(i.uuid).await?;
+
+    println!(
+        "\r{}: {}: IP address: {}",
+        i.name,
+        i.status,
+        m.addr.unwrap()
+    );
 
     Ok(())
 }

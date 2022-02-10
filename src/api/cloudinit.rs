@@ -11,6 +11,11 @@ pub async fn user_data(
 ) -> Result<String, Error> {
     let conn = state.pool.get().await?;
 
+    conn.execute(
+        "UPDATE instances SET status = ?1 WHERE uuid = ?2",
+        params!["running", id],
+    )?;
+
     Ok(conn.query_row(
         "SELECT user_data FROM cloudconfig_seeds WHERE uuid = ?1",
         params![id],

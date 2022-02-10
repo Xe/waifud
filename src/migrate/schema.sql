@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS instances
   , memory INTEGER NOT NULL
   , disk_size INTEGER NOT NULL
   , zvol_name TEXT NOT NULL
+  , status TEXT NOT NULL DEFAULT 'unknown'
+  , distro TEXT NOT NULL
   );
 
 CREATE TABLE IF NOT EXISTS cloudconfig_seeds

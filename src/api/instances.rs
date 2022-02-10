@@ -95,7 +95,7 @@ pub async fn get_by_name(
     let conn = state.pool.get().await?;
 
     let mut stmt = conn.prepare(
-        "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name FROM instances WHERE name = ?1",
+        "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name, status, distro FROM instances WHERE name = ?1",
     )?;
     let instance = stmt.query_row(params![name], |row| {
         Ok(Instance {
@@ -106,6 +106,8 @@ pub async fn get_by_name(
             memory: row.get(4)?,
             disk_size: row.get(5)?,
             zvol_name: row.get(6)?,
+            status: row.get(7)?,
+            distro: row.get(8)?,
         })
     })?;
 
@@ -121,7 +123,7 @@ pub async fn get(
     let conn = state.pool.get().await?;
 
     let mut stmt = conn.prepare(
-        "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name FROM instances WHERE uuid = ?1",
+        "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name, status, distro FROM instances WHERE uuid = ?1",
     )?;
     let instance = stmt.query_row(params![id], |row| {
         Ok(Instance {
@@ -132,6 +134,8 @@ pub async fn get(
             memory: row.get(4)?,
             disk_size: row.get(5)?,
             zvol_name: row.get(6)?,
+            status: row.get(7)?,
+            distro: row.get(8)?,
         })
     })?;
 
@@ -146,7 +150,7 @@ pub async fn list(Extension(state): Extension<Arc<State>>) -> Result<Json<Vec<In
     let mut result: Vec<Instance> = Vec::new();
 
     let mut stmt = conn.prepare(
-        "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name FROM instances",
+        "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name, status, distro FROM instances",
     )?;
     let instances = stmt.query_map(params![], |row| {
         Ok(Instance {
@@ -157,6 +161,8 @@ pub async fn list(Extension(state): Extension<Arc<State>>) -> Result<Json<Vec<In
             memory: row.get(4)?,
             disk_size: row.get(5)?,
             zvol_name: row.get(6)?,
+            status: row.get(7)?,
+            distro: row.get(8)?,
         })
     })?;
 
@@ -205,13 +211,76 @@ pub async fn create(
         host: details.host.clone(),
         disk_size_gb: details.disk_size_gb.or(Some(distro.min_size)),
         zvol_prefix: details.zvol_prefix.or(Some("rpool/safe/vms".into())),
-        distro: distro.name,
+        distro: distro.name.clone(),
         sata: details.sata.or(Some(false)),
         cpus: details.cpus.or(Some(2)),
         user_data: details
             .user_data
             .or(Some(include_str!("../../var/xe-base.yaml").into())),
     };
+
+    let mac_addr = random_mac();
+    let zvol_name = format!(
+        "{}/{}",
+        details.zvol_prefix.clone().unwrap(),
+        details.name.clone().unwrap()
+    );
+
+    let ins = Instance {
+        uuid: id,
+        name: details.name.clone().unwrap(),
+        host: details.host.clone(),
+        memory: details.memory_mb.unwrap(),
+        disk_size: details.disk_size_gb.unwrap(),
+        mac_address: mac_addr.clone(),
+        zvol_name: zvol_name.clone(),
+        status: "init".into(),
+        distro: details.distro.clone(),
+    };
+
+    {
+        let ins = ins.clone();
+        conn.execute(
+            "INSERT INTO instances(uuid, name, host, mac_address, memory, disk_size, zvol_name, status, distro) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+            params![
+                ins.uuid,
+                ins.name,
+                ins.host,
+                mac_addr,
+                ins.memory,
+                ins.disk_size,
+                zvol_name,
+                ins.status,
+                ins.distro,
+            ],
+        )?;
+
+        conn.execute(
+            "INSERT INTO cloudconfig_seeds(uuid, user_data) VALUES (?1, ?2)",
+            params![id.clone(), details.user_data.clone().unwrap()],
+        )?;
+    }
+
+    drop(conn);
+
+    tokio::spawn(async move {
+        if let Err(why) = make_instance(config, state, details, distro, mac_addr, id).await {
+            error!("can't make instance: {}", why);
+        }
+    });
+
+    Ok(Json(ins))
+}
+
+async fn make_instance(
+    config: Arc<Config>,
+    state: Arc<State>,
+    details: NewInstance,
+    distro: Distro,
+    mac_addr: String,
+    id: Uuid,
+) -> Result<(), Error> {
+    let conn = state.pool.get().await?;
 
     debug!("name: {}", details.name.as_ref().unwrap());
 
@@ -226,6 +295,10 @@ pub async fn create(
         .await?;
     if output.status != ExitStatus::from_raw(0) {
         debug!("downloading image");
+        conn.execute(
+            "UPDATE instances SET status = ?1 WHERE uuid = ?2",
+            params!["downloading image", id],
+        )?;
         let output = Command::new("ssh")
             .args([
                 &details.host.clone(),
@@ -276,6 +349,10 @@ pub async fn create(
         return Err(Error::CantMakeZvol(details.host.clone(), stderr));
     }
     debug!("hydrating zvol");
+    conn.execute(
+        "UPDATE instances SET status = ?1 WHERE uuid = ?2",
+        params!["hydrating zvol", id],
+    )?;
     let output = Command::new("ssh")
         .args([
             &details.host.clone(),
@@ -317,14 +394,7 @@ pub async fn create(
         return Err(Error::CantMakeInitSnapshot(details.host.clone(), stderr));
     }
 
-    conn.execute(
-        "INSERT INTO cloudconfig_seeds(uuid, user_data) VALUES (?1, ?2)",
-        params![id.clone(), details.user_data.clone().unwrap()],
-    )?;
-
     let mut buf: Vec<u8> = vec![];
-
-    let mac_addr = random_mac();
 
     debug!("rendering xml");
     crate::templates::base_xml(
@@ -360,37 +430,11 @@ pub async fn create(
     let addr = addr?;
 
     debug!("ip: {:?}", addr);
-    let zvol_name = format!(
-        "{}/{}",
-        details.zvol_prefix.clone().unwrap(),
-        details.name.clone().unwrap()
-    );
 
-    let ins = Instance {
-        uuid: id,
-        name: details.name.unwrap(),
-        host: details.host,
-        memory: details.memory_mb.unwrap(),
-        disk_size: details.disk_size_gb.unwrap(),
-        mac_address: mac_addr.clone(),
-        zvol_name: zvol_name.clone(),
-    };
+    conn.execute(
+        "UPDATE instances SET status = ?1 WHERE uuid = ?2",
+        params!["waiting for cloud-init", id],
+    )?;
 
-    {
-        let ins = ins.clone();
-        conn.execute(
-            "INSERT INTO instances(uuid, name, host, mac_address, memory, disk_size, zvol_name) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-            params![
-                ins.uuid,
-                ins.name,
-                ins.host,
-                mac_addr,
-                ins.memory,
-                ins.disk_size,
-                zvol_name,
-            ],
-        )?;
-    }
-
-    Ok(Json(ins))
+    Ok(())
 }

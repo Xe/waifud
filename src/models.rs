@@ -10,6 +10,8 @@ pub struct Instance {
     pub memory: i32,
     pub disk_size: i32,
     pub zvol_name: String,
+    pub status: String,
+    pub distro: String,
 }
 
 pub struct CloudconfigSeed {
