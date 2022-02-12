@@ -2,8 +2,8 @@ let Config =
       { Type =
           { baseURL : Text, hosts : List Text, bindHost : Text, port : Natural }
       , default =
-        { baseURL = "http://100.78.40.86:23818"
-        , hosts = [ "logos", "ontos", "kos-mos", "pneuma" ]
+        { baseURL = "http://192.168.122.1:23818"
+        , hosts = [ "vmhost1", "vmhost2" ]
         , bindHost = "::"
         , port = 23818
         }
