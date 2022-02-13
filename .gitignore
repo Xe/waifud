@@ -1,6 +1,7 @@
 *.qcow2
 var/*.xml
 config.dhall
+result
 
 # Added by cargo
 
