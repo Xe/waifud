@@ -11,30 +11,26 @@
       let
         pkgs = import nixpkgs { inherit system; };
         naersk-lib = pkgs.callPackage naersk { };
-      in {
-        packages = {
-          waifud-full = naersk-lib.buildPackage {
-            src = ./.;
-            buildInputs = with pkgs; [
-              pkg-config
-              openssl
-              sqliteInteractive
-              libvirt
-            ];
-          };
-
-          waifuctl = pkgs.stdenv.mkDerivation {
-            pname = "waifuctl";
-            version = self.packages."${system}".waifud-full.version;
-
-            installPhase = ''
-              mkdir -p $out/bin
-              cp ${self.packages."${system}".waifud-full}/bin/waifuctl $out/bin
-            '';
-          };
+      in rec {
+        defaultPackage = naersk-lib.buildPackage {
+          src = ./.;
+          buildInputs = with pkgs; [
+            pkg-config
+            openssl
+            sqliteInteractive
+            libvirt
+          ];
         };
 
-        defaultPackage = self.packages.waifud-full;
+        packages.waifuctl = pkgs.stdenv.mkDerivation {
+          src = self.defaultPackage."${system}";
+          phases = "installPhase";
+          installPhase = ''
+            mkdir -p $out/bin
+            cp $src/bin/waifuctl $out/bin
+          '';
+        };
+
         defaultApp = utils.lib.mkApp { drv = self.defaultPackage."${system}"; };
 
         devShell = with pkgs;
