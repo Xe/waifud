@@ -12,26 +12,38 @@
         pkgs = import nixpkgs { inherit system; };
         naersk-lib = pkgs.callPackage naersk { };
       in rec {
-        defaultPackage = naersk-lib.buildPackage {
-          src = ./.;
-          buildInputs = with pkgs; [
-            pkg-config
-            openssl
-            sqliteInteractive
-            libvirt
-          ];
+        packages = {
+          waifud = naersk-lib.buildPackage {
+            src = ./.;
+            buildInputs = with pkgs; [
+              pkg-config
+              openssl
+              sqliteInteractive
+              libvirt
+            ];
+          };
+
+          waifuctl = pkgs.stdenv.mkDerivation {
+            src = self.packages."${system}".waifud;
+            pname = "waifuctl";
+            version = self.packages."${system}".waifud.version;
+            phases = "installPhase";
+            installPhase = ''
+              mkdir -p $out/bin
+              cp $src/bin/waifuctl $out/bin
+            '';
+          };
         };
 
-        packages.waifuctl = pkgs.stdenv.mkDerivation {
-          src = self.defaultPackage."${system}";
-          phases = "installPhase";
-          installPhase = ''
-            mkdir -p $out/bin
-            cp $src/bin/waifuctl $out/bin
-          '';
+        defaultPackage = self.packages."${system}".waifud;
+
+        apps = {
+          waifud = utils.lib.mkApp { drv = self.packages."${system}".waifud; };
+          waifuctl =
+            utils.lib.mkApp { drv = self.packages."${system}".waifuctl; };
         };
 
-        defaultApp = utils.lib.mkApp { drv = self.defaultPackage."${system}"; };
+        defaultApp = self.apps."${system}".waifud;
 
         devShell = with pkgs;
           mkShell {
@@ -56,7 +68,6 @@
             ];
             RUST_SRC_PATH = rustPlatform.rustLibSrc;
           };
-
       });
 
 }
