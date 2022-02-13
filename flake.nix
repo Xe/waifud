@@ -10,19 +10,44 @@
     utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
-        naersk-lib = pkgs.callPackage naersk {};
+        naersk-lib = pkgs.callPackage naersk { };
       in {
 
-        defaultPackage = naersk-lib.buildPackage ./.;
-
-        defaultApp = utils.lib.mkApp {
-            drv = self.defaultPackage."${system}";
+        defaultPackage = naersk-lib.buildPackage {
+          src = ./.;
+          buildInputs = with pkgs; [
+            pkg-config
+            openssl
+            sqliteInteractive
+            libvirt
+          ];
         };
 
-        devShell = with pkgs; mkShell {
-          buildInputs = [ cargo rustc rustfmt pre-commit rustPackages.clippy ];
-          RUST_SRC_PATH = rustPlatform.rustLibSrc;
-        };
+        defaultApp = utils.lib.mkApp { drv = self.defaultPackage."${system}"; };
+
+        devShell = with pkgs;
+          mkShell {
+            buildInputs = [
+              cargo
+              rustc
+              rustfmt
+              pre-commit
+              rustPackages.clippy
+              openssl
+              pkg-config
+              sqliteInteractive
+              libvirt
+              dhall
+              dhall-json
+              go
+              goimports
+              gopls
+              cdrkit
+              jq
+              jo
+            ];
+            RUST_SRC_PATH = rustPlatform.rustLibSrc;
+          };
 
       });
 
