@@ -9,7 +9,7 @@ use std::sync::Arc;
 use tower::limit::ConcurrencyLimitLayer;
 use tower_http::trace::TraceLayer;
 use waifud::{
-    api::{self, cloudinit, distros, instances},
+    api::{self, audit, cloudinit, distros, instances},
     Config, Result, State,
 };
 
@@ -28,6 +28,7 @@ async fn main() -> Result {
         .layer(AddExtensionLayer::new(Arc::new(cfg)));
 
     let app = Router::new()
+        .route("/api/v1/auditlogs", get(audit::list))
         .route("/api/v1/distros", get(distros::list))
         .route("/api/v1/distros", post(distros::create))
         .route("/api/v1/distros/:name", post(distros::update))

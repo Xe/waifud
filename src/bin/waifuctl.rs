@@ -1,12 +1,13 @@
 #[macro_use]
 extern crate tracing;
 
+use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_dhall::StaticType;
 use std::{
     convert::TryInto,
     fs,
-    io::{self, Write},
+    io::{self, stdout, Write},
     path::PathBuf,
     process::exit,
     time::Duration,
@@ -39,6 +40,12 @@ struct Config {
 
 #[derive(StructOpt, Debug)]
 enum Command {
+    /// Manage audit logs
+    Audit {
+        /// Format all audit logs in JSON
+        #[structopt(long)]
+        json: bool,
+    },
     /// List all instances
     List,
     Create(CreateOpts),
@@ -353,6 +360,32 @@ async fn delete_distro(cli: Client, name: String) -> Result<()> {
     Ok(())
 }
 
+async fn audit_list(cli: Client, json: bool) -> Result<()> {
+    let logs = cli.audit_logs().await?;
+
+    if json {
+        serde_json::to_writer(stdout(), &logs)?;
+        return Ok(());
+    }
+
+    let mut table = Table::new("{:>}  {:<}  {:<}  {:<}");
+    table.add_row(row!("timestamp", "kind", "name", "op"));
+
+    for log in logs {
+        let ts = NaiveDateTime::from_timestamp(log.ts, 0);
+        table.add_row(row!(
+            ts.to_string(),
+            log.kind,
+            log.name.unwrap_or("".into()),
+            log.op
+        ));
+    }
+
+    println!("{}", table);
+
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
@@ -383,6 +416,7 @@ async fn main() -> Result<()> {
     let cli = Client::new(opt.host.unwrap())?;
 
     if let Err(why) = match opt.cmd {
+        Command::Audit { json } => audit_list(cli, json).await,
         Command::Distro { cmd } => match cmd {
             DistroCmd::Create(opts) => create_distro(cli, opts).await,
             DistroCmd::Delete { name } => delete_distro(cli, name).await,

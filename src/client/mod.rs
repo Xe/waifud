@@ -1,7 +1,7 @@
 use crate::{
     api::libvirt::Machine,
     libvirt::NewInstance,
-    models::{Distro, Instance},
+    models::{AuditEvent, Distro, Instance},
     Result,
 };
 use std::time::Duration;
@@ -23,6 +23,19 @@ impl Client {
             base_url: Url::parse(&base_url)?,
             cli,
         })
+    }
+
+    pub async fn audit_logs(&self) -> Result<Vec<AuditEvent>> {
+        let mut u = self.base_url.clone();
+        u.set_path("/api/v1/auditlogs");
+        Ok(self
+            .cli
+            .get(u)
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?)
     }
 
     pub async fn create_instance(&self, ni: NewInstance) -> Result<Instance> {

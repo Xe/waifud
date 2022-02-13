@@ -17,6 +17,7 @@ axum = "0.4"
 axum-macros = "0.1"
 axum-extra = "0.1"
 bb8 = "0.7"
+chrono = "0.4"
 dirs = "4"
 hyper = "0.14"
 mac_address = "1"
@@ -37,7 +38,7 @@ virt = { git = "https://gitlab.com/libvirt/libvirt-rust.git", rev = "10456b6e59e
 
 [dependencies.rusqlite]
 version = "0.26"
-features = [ "bundled", "uuid", "serde_json" ]
+features = [ "bundled", "uuid", "serde_json", "chrono" ]
 
 [dependencies.serde]
 version = "1"
