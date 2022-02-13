@@ -1,0 +1,13 @@
+#cloud-config
+#vim:syntax=yaml
+
+# See https://cloudinit.readthedocs.io/en/latest/topics/examples.html
+# for examples of what to put in here.
+
+users:
+  - name: user
+    groups: [ wheel ]
+    sudo: [ "ALL=(ALL) NOPASSWD:ALL" ]
+    shell: /bin/bash
+    ssh-authorized-keys:
+      - # get your authorized key from `ssh-add -L`

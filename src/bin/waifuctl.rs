@@ -27,15 +27,33 @@ struct Opt {
     /// waifud host to connect to
     #[structopt(short, long)]
     pub host: Option<String>,
+
     #[structopt(subcommand)]
     cmd: Command,
 }
 
-#[derive(StructOpt, Deserialize, Serialize, Debug, StaticType)]
+#[derive(Deserialize, Serialize, Debug, StaticType, Clone)]
 struct Config {
     /// waifud host to connect to
-    #[structopt(short, long)]
     pub host: String,
+
+    /// Default cloudconfig to preload into every VM
+    pub userdata: String,
+}
+
+#[derive(StructOpt, Debug)]
+enum ConfigCmd {
+    /// Shows current config
+    Show,
+
+    /// Set the waifud host to an arbitrary URL
+    SetHost {
+        /// The waifud host
+        url: String,
+    },
+
+    /// Set the default cloudconfig added to instances
+    SetUserdata,
 }
 
 #[derive(StructOpt, Debug)]
@@ -45,6 +63,11 @@ enum Command {
         /// Format all audit logs in JSON
         #[structopt(long)]
         json: bool,
+    },
+    /// Manage waifuctl configuration
+    Config {
+        #[structopt(subcommand)]
+        cmd: ConfigCmd,
     },
     /// List all instances
     List,
@@ -111,9 +134,9 @@ struct CreateOpts {
     #[structopt(short, long = "zvol", default_value = "rpool/local/vms")]
     zvol_prefix: String,
 
-    /// File containing cloud-init user data
-    #[structopt(short, long, default_value = "./var/xe-base.yaml")]
-    user_data: PathBuf,
+    /// File containing cloud-init user data, if not set will default to configured value
+    #[structopt(short, long)]
+    user_data: Option<PathBuf>,
 
     /// Distribution to use
     #[structopt(short, long)]
@@ -124,7 +147,10 @@ impl TryInto<NewInstance> for CreateOpts {
     type Error = anyhow::Error;
 
     fn try_into(self) -> Result<NewInstance, anyhow::Error> {
-        let user_data = fs::read_to_string(self.user_data)?;
+        let user_data = match self.user_data {
+            Some(user_data) => Some(fs::read_to_string(user_data)?),
+            None => None,
+        };
 
         Ok(NewInstance {
             name: self.name,
@@ -135,7 +161,7 @@ impl TryInto<NewInstance> for CreateOpts {
             zvol_prefix: Some(self.zvol_prefix),
             distro: self.distro,
             sata: Some(false),
-            user_data: Some(user_data),
+            user_data,
         })
     }
 }
@@ -229,7 +255,10 @@ where
     loop {
         i = cli.get_instance(i.uuid).await?;
         io::stdout().flush()?;
-        print!("{}: {}   \r", i.name, i.status);
+        print!(
+            "{}: {}                                        \r",
+            i.name, i.status
+        );
         if i.status == want {
             break;
         }
@@ -277,8 +306,13 @@ async fn reboot_instance(cli: Client, name: String, hard: bool) -> Result {
     Ok(())
 }
 
-async fn create_instance(cli: Client, opts: CreateOpts) -> Result {
-    let ni: NewInstance = opts.try_into()?;
+async fn create_instance(cli: Client, cfg: Config, opts: CreateOpts) -> Result {
+    let mut ni: NewInstance = opts.try_into()?;
+
+    if ni.user_data.is_none() {
+        ni.user_data = Some(cfg.userdata);
+    }
+
     let i = cli.create_instance(ni).await?;
 
     println!("created instance {} on {}", i.name, i.host);
@@ -398,32 +432,91 @@ async fn audit_list(cli: Client, json: bool) -> Result<()> {
     Ok(())
 }
 
+fn config_show(cfg: Config) -> Result {
+    println!("waifud host: {}", cfg.host);
+    println!("default cloudconfig:\n\n{}", cfg.userdata);
+
+    Ok(())
+}
+
+fn config_set_host(cfg: Config, url: String) -> Result {
+    let mut cfg = cfg.clone();
+
+    cfg.host = url.clone();
+
+    let mut fname = dirs::config_dir().unwrap();
+    fname.push("xeserv");
+    let _ = fs::create_dir_all(&fname);
+    fname.push("waifuctl");
+    fname.set_extension("dhall");
+
+    let mut fout = fs::File::create(&fname).unwrap();
+    let cfg = serde_dhall::serialize(&cfg)
+        .static_type_annotation()
+        .to_string()?;
+    fout.write_all(cfg.as_bytes())?;
+
+    println!("set host to {} in {}", url, fname.to_str().unwrap());
+    Ok(())
+}
+
+fn config_set_userdata(cfg: Config) -> Result {
+    let userdata = edit::edit(&cfg.userdata)?;
+    let mut cfg = cfg.clone();
+    cfg.userdata = userdata;
+
+    let mut fname = dirs::config_dir().unwrap();
+    fname.push("xeserv");
+    let _ = fs::create_dir_all(&fname);
+    fname.push("waifuctl");
+    fname.set_extension("dhall");
+
+    let mut fout = fs::File::create(&fname).unwrap();
+    let cfg = serde_dhall::serialize(&cfg)
+        .static_type_annotation()
+        .to_string()?;
+    fout.write_all(cfg.as_bytes())?;
+
+    println!("wrote default cloudconfig to {}", fname.to_str().unwrap());
+
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
 
     let mut opt = Opt::from_args();
-    debug!("{:?}", opt);
 
-    if opt.host.is_none() {
+    let cfg = {
         let mut fname = dirs::config_dir().unwrap();
         fname.push("xeserv");
         let _ = fs::create_dir_all(&fname);
         fname.push("waifuctl");
         fname.set_extension("dhall");
 
-        if let Err(_) = fs::metadata(&fname) {
-            let mut fout = fs::File::create(&fname).unwrap();
-            let cfg = serde_dhall::serialize(&Config {
-                host: "http://[::]:23818".into(),
-            })
-            .static_type_annotation()
-            .to_string()?;
-            fout.write_all(cfg.as_bytes())?;
+        if opt.host.is_none() {
+            if let Err(_) = fs::metadata(&fname) {
+                let mut fout = fs::File::create(&fname).unwrap();
+                let cfg = serde_dhall::serialize(&Config {
+                    host: "http://[::]:23818".into(),
+                    userdata: include_str!("../../var/base.yaml").to_string(),
+                })
+                .static_type_annotation()
+                .to_string()?;
+                fout.write_all(cfg.as_bytes())?;
+            }
         }
 
-        opt.host = Some(serde_dhall::from_file(&fname).parse::<Config>()?.host);
+        let cfg = serde_dhall::from_file(&fname).parse::<Config>()?;
+        debug!("config: {:?}", cfg);
+        cfg
+    };
+    if let None = opt.host {
+        opt.host = Some(cfg.host.clone());
     }
+
+    debug!("{:?}", opt);
 
     let cli = Client::new(opt.host.unwrap())?;
 
@@ -436,12 +529,17 @@ async fn main() -> Result<()> {
             DistroCmd::Update(opts) => update_distro(cli, opts).await,
         },
         Command::List => list_instances(cli).await,
-        Command::Create(opts) => create_instance(cli, opts).await,
+        Command::Create(opts) => create_instance(cli, cfg, opts).await,
         Command::Delete { name } => delete_instance(cli, name).await,
         Command::Reboot { name, hard } => reboot_instance(cli, name, hard).await,
         Command::Reinit { name } => reinit_instance(cli, name).await,
         Command::Start { name } => start_instance(cli, name).await,
         Command::Shutdown { name } => shutdown_instance(cli, name).await,
+        Command::Config { cmd } => match cmd {
+            ConfigCmd::Show => config_show(cfg),
+            ConfigCmd::SetHost { url } => config_set_host(cfg, url),
+            ConfigCmd::SetUserdata => config_set_userdata(cfg),
+        },
     } {
         eprintln!("OOPSIE WOOPSIE!! Uwu We made a fucky wucky!! A wittle fucko boingo! The code monkeys at our headquarters are working VEWY HAWD to fix this!");
         eprintln!("{}", why);
