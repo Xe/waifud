@@ -37,6 +37,7 @@ async fn main() -> Result {
         .route("/api/v1/instances", post(instances::create))
         .route("/api/v1/instances", get(instances::list))
         .route("/api/v1/instances/:id", get(instances::get))
+        .route("/api/v1/instances/:id/reinit", post(instances::reinit))
         .route(
             "/api/v1/instances/:id/hardreboot",
             post(instances::hard_reboot),

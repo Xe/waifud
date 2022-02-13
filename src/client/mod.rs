@@ -59,6 +59,13 @@ impl Client {
         Ok(())
     }
 
+    pub async fn reinit_instance(&self, id: Uuid) -> Result {
+        let mut u = self.base_url.clone();
+        u.set_path(&format!("/api/v1/instances/{}/reinit", id));
+        self.cli.post(u).send().await?.error_for_status()?;
+        Ok(())
+    }
+
     pub async fn list_instances(&self) -> Result<Vec<Instance>> {
         let mut u = self.base_url.clone();
         u.set_path("/api/v1/instances");

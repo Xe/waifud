@@ -19,6 +19,79 @@ use virt::{connect::Connect, domain::Domain};
 
 #[instrument(err)]
 #[axum_macros::debug_handler]
+pub async fn reinit(
+    Path(id): Path<Uuid>,
+    Extension(state): Extension<Arc<State>>,
+) -> Result<(), Error> {
+    let conn = state.pool.get().await?;
+
+    let mut i = Instance::from_uuid(&conn, id)?;
+
+    let nuke: Result<(), Error> = {
+        let host = i.host.clone();
+        let id = i.uuid.clone();
+
+        spawn_blocking(move || {
+            let conn = Connect::open(&format!("qemu+ssh://root@{}/system", host))?;
+
+            let dom = Domain::lookup_by_uuid_string(&conn, &id.to_string())?;
+
+            dom.destroy()?;
+            Ok(())
+        })
+        .await?
+    };
+    nuke?;
+
+    sleep(Duration::from_millis(500)).await;
+
+    debug!("rolling back zvol");
+    let output = Command::new("ssh")
+        .args([
+            &i.host,
+            "sudo",
+            "zfs",
+            "rollback",
+            &format!("{}@init", i.zvol_name),
+        ])
+        .output()
+        .await?;
+    if output.status != ExitStatus::from_raw(0) {
+        let stderr = String::from_utf8(output.stderr).unwrap();
+        return Err(Error::CantRollbackZvol(
+            i.host.clone(),
+            "init".to_string(),
+            stderr,
+        ));
+    }
+
+    let nuke: Result<(), Error> = {
+        let host = i.host.clone();
+        let id = i.uuid.clone();
+
+        spawn_blocking(move || {
+            let conn = Connect::open(&format!("qemu+ssh://root@{}/system", host))?;
+
+            let dom = Domain::lookup_by_uuid_string(&conn, &id.to_string())?;
+
+            dom.create()?;
+            Ok(())
+        })
+        .await?
+    };
+    nuke?;
+
+    i.status = "reinit".to_string();
+    conn.execute(
+        "INSERT INTO audit_logs(kind, op, data) VALUES (?1, ?2, ?3)",
+        params!["instance", "reinit", serde_json::to_string(&i)?],
+    )?;
+
+    Ok(())
+}
+
+#[instrument(err)]
+#[axum_macros::debug_handler]
 pub async fn delete(
     Path(id): Path<Uuid>,
     Extension(state): Extension<Arc<State>>,

@@ -117,6 +117,9 @@ pub enum Error {
     #[error("can't delete zfs zvol on {0}:\n\n{1}")]
     CantDeleteZvol(String, String),
 
+    #[error("can't rollback zfs zvol to snapshot {1} on {0}:\n\n{2}")]
+    CantRollbackZvol(String, String, String),
+
     #[error("can't hydrate zfs zvol on {0}:\n\n{1}")]
     CantHydrateZvol(String, String),
 

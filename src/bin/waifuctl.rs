@@ -58,6 +58,11 @@ enum Command {
         #[structopt(subcommand)]
         cmd: DistroCmd,
     },
+    /// Reset a VM back to factory settings
+    Reinit {
+        /// Instance name
+        name: String,
+    },
     /// Turn an instance on
     Start {
         /// Instance name
@@ -306,6 +311,13 @@ async fn delete_instance(cli: Client, name: String) -> Result {
     Ok(())
 }
 
+async fn reinit_instance(cli: Client, name: String) -> Result<()> {
+    let i = cli.get_instance_by_name(name.clone()).await?;
+    cli.reinit_instance(i.uuid).await?;
+
+    Ok(())
+}
+
 async fn create_distro(cli: Client, opts: CreateDistroOpts) -> Result {
     let d: Distro = opts.into();
     let d = cli.create_distro(d).await?;
@@ -427,6 +439,7 @@ async fn main() -> Result<()> {
         Command::Create(opts) => create_instance(cli, opts).await,
         Command::Delete { name } => delete_instance(cli, name).await,
         Command::Reboot { name, hard } => reboot_instance(cli, name, hard).await,
+        Command::Reinit { name } => reinit_instance(cli, name).await,
         Command::Start { name } => start_instance(cli, name).await,
         Command::Shutdown { name } => shutdown_instance(cli, name).await,
     } {
