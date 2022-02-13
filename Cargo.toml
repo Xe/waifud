@@ -30,7 +30,7 @@ tracing-subscriber = "0.2"
 url = "2"
 
 bb8-rusqlite = { git = "https://github.com/pleshevskiy/bb8-rusqlite", branch = "bump-rusqlite" }
-virt = { git = "https://gitlab.com/libvirt/libvirt-rust.git" }
+virt = { git = "https://gitlab.com/libvirt/libvirt-rust.git", rev = "10456b6e59ec73e8ef418cf0a29a9bf33be8ded6" }
 
 [dependencies.rusqlite]
 version = "0.26"
