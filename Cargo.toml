@@ -8,6 +8,9 @@ repository = "https://github.com/Xe/waifud"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[profile.release]
+lto = true
+
 [dependencies]
 anyhow = "1"
 axum = "0.4"
