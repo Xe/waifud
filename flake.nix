@@ -219,9 +219,6 @@
               libvirt
               dhall
               dhall-json
-              go
-              goimports
-              gopls
               jq
               jo
             ];

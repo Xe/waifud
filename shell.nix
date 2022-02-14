@@ -17,11 +17,6 @@ pkgs.mkShell rec {
     dhall
     dhall-json
 
-    # go
-    go
-    goimports
-    gopls
-
     # other tools
     cdrkit
     jq
