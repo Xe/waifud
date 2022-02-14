@@ -47,11 +47,20 @@
 
         nixosModules = {
           waifuctl = { ... }: {
-            environment.systemPackages = [ self.packages."${system}".waifuctl ];
+            environment.defaultPackages =
+              [ self.packages."${system}".waifuctl ];
           };
 
           waifud-common = { lib, ... }: {
             users.groups.waifud = lib.mkDefault { };
+
+            users.users.waifud = {
+              createHome = true;
+              description = "waifud user";
+              isSystemUser = true;
+              group = "waifud";
+              home = "/var/lib/waifud";
+            };
           };
 
           waifud-host = { lib, pkgs, config, ... }:
@@ -106,14 +115,6 @@
               };
 
               config = {
-                users.users.waifud = {
-                  createHome = true;
-                  description = "waifud user";
-                  isSystemUser = true;
-                  group = "waifud";
-                  home = "/var/lib/waifud";
-                };
-
                 systemd.services = {
                   waifud-ssh-agent = {
                     wantedBy = [ "multi-user.target" ];
@@ -140,10 +141,8 @@
                       Restart = "always";
                       WorkingDirectory = "/var/lib/waifud";
                       RestartSec = "30s";
-                      ExecStartPre = [
-                        "rm -f ./config.dhall"
-                        "cp ${cfgDhall} ./config.dhall"
-                      ];
+                      ExecStartPre =
+                        "ln --symbolic --force ${cfgDhall} ./config.dhall";
                       ExecStart =
                         "${self.packages."${system}".waifud}/bin/waifud";
                     };
@@ -152,21 +151,58 @@
               };
             };
 
-          waifud-runner = { pkgs, lib, ... }: {
-            imports = [ self.nixosModules."${system}".waifud-common ];
+          waifud-runner = { pkgs, lib, config, ... }:
+            with lib;
+            let cfg = config.xeserv.waifud.runner;
+            in {
+              imports = [ self.nixosModules."${system}".waifud-common ];
 
-            environment.systemPackages = with pkgs; [ qemu zfs wget ];
-            services.libvirt.enable = lib.mkDefault true;
+              options.xeserv.waifud.runner = with lib; {
+                parentDataset = mkOption {
+                  type = types.str;
+                  default = "rpool/local/vms";
+                  description =
+                    "the parent dataset to grant the waifud group zfs management access on";
+                };
 
-            security.polkit.extraConfig = ''
-              /* Allow users in the waifud group to manage the libvirt daemon without authentication */
-              polkit.addRule(function(action, subject) {
-                  if (action.id == "org.libvirt.unix.manage" && subject.isInGroup("waifud")) {
-                          return polkit.Result.YES;
-                  }
-              });
-            '';
-          };
+                sshKeys = mkOption {
+                  type = with types; listOf str;
+                  default = [ ];
+                  description =
+                    "the list of SSH public keys to allow waifud to ssh in as";
+                };
+              };
+
+              config = {
+                environment.defaultPackages = with pkgs; [ qemu zfs wget ];
+                services.libvirt.enable = lib.mkDefault true;
+
+                systemd.services.waifud-runner-setup = {
+                  wantedBy = [ "multi-user.target" ];
+                  serviceConfig.Type = "oneshot";
+                  script = ''
+                    zfs allow -g waifud create,destroy,mount,snapshot,rollback ${cfg.parentDataset}
+                  '';
+                };
+
+                security.polkit.extraConfig = ''
+                  /* Allow users in the waifud group to manage the libvirt daemon without authentication */
+                  polkit.addRule(function(action, subject) {
+                      if (action.id == "org.libvirt.unix.manage" && subject.isInGroup("waifud")) {
+                              return polkit.Result.YES;
+                      }
+                  });
+                '';
+
+                users.users.waifud.openssh.authorizedKeys.keys = cfg.sshKeys;
+
+                security.sudo.extraRules = [{
+                  groups = "waifud";
+                  commands = [ "qemu-img" ];
+                  options = [ "NOPASSWD" ];
+                }];
+              };
+            };
         };
 
         devShell = with pkgs;
