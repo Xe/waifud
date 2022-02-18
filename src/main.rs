@@ -24,6 +24,13 @@ async fn main() -> Result {
     let middleware = tower::ServiceBuilder::new()
         .layer(TraceLayer::new_for_http())
         .layer(ConcurrencyLimitLayer::new(64))
+        .layer(AddExtensionLayer::new(Arc::new(
+            tailscale_client::Client::new(
+                waifud::APPLICATION_NAME.to_string(),
+                cfg.tailscale.api_key.clone(),
+                cfg.tailscale.tailnet.clone(),
+            ),
+        )))
         .layer(AddExtensionLayer::new(Arc::new(State::new().await?)))
         .layer(AddExtensionLayer::new(Arc::new(cfg)));
 

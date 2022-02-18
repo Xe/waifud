@@ -25,10 +25,13 @@ pub type Result<T = (), E = Error> = std::result::Result<T, E>;
 
 pub mod api;
 pub mod client;
+pub mod config;
 pub mod libvirt;
 pub mod migrate;
 pub mod models;
 pub mod namegen;
+
+pub use config::Config;
 
 pub struct State {
     pub pool: Pool<RusqliteConnectionManager>,
@@ -48,16 +51,6 @@ impl State {
         let pool = bb8::Pool::builder().build(mgr).await?;
         Ok(State { pool })
     }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Config {
-    #[serde(rename = "baseURL")]
-    base_url: String,
-    hosts: Vec<String>,
-    #[serde(rename = "bindHost")]
-    bind_host: IpAddr,
-    port: u16,
 }
 
 #[derive(thiserror::Error, Debug)]
