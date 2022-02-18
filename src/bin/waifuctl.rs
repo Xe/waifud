@@ -141,6 +141,10 @@ struct CreateOpts {
     /// Distribution to use
     #[structopt(short, long)]
     distro: String,
+
+    /// Automagically join the tailnet
+    #[structopt(short, long)]
+    join_tailnet: bool,
 }
 
 impl TryInto<NewInstance> for CreateOpts {
@@ -162,6 +166,7 @@ impl TryInto<NewInstance> for CreateOpts {
             distro: self.distro,
             sata: Some(false),
             user_data,
+            join_tailnet: self.join_tailnet,
         })
     }
 }
@@ -306,6 +311,7 @@ async fn reboot_instance(cli: Client, name: String, hard: bool) -> Result {
     Ok(())
 }
 
+#[instrument(ret, level = "debug", err, skip(cli))]
 async fn create_instance(cli: Client, cfg: Config, opts: CreateOpts) -> Result {
     let mut ni: NewInstance = opts.try_into()?;
 

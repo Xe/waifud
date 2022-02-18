@@ -1,6 +1,7 @@
 use crate::{models::Instance, Error, State};
 use axum::extract::{Extension, Path};
 use rusqlite::params;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -48,7 +49,87 @@ local-hostname: {}",
     ))
 }
 
-#[instrument]
-pub async fn vendor_data(Path(_id): Path<Uuid>) -> &'static str {
-    include_str!("./vendor-data")
+#[instrument(err, skip(ts))]
+pub async fn vendor_data(
+    Path(id): Path<Uuid>,
+    Extension(ts): Extension<Arc<tailscale_client::Client>>,
+    Extension(state): Extension<Arc<State>>,
+) -> Result<String, Error> {
+    let conn = state.pool.get().await?;
+
+    let i: Instance = Instance::from_uuid(&conn, id)?;
+
+    if i.join_tailnet {
+        let key_info = ts
+            .create_key(tailscale_client::Capabilities {
+                ephemeral: true,
+                reusable: false,
+            })
+            .await?;
+
+        conn.execute(
+            "INSERT INTO audit_logs(kind, op, data) VALUES (?1, ?2, ?3)",
+            params![
+                "tailnet authkey",
+                "create",
+                serde_json::to_string(&key_info)?
+            ],
+        )?;
+
+        if i.distro == "ubuntu-20.04".to_string() {
+            Ok(format!("#cloud-config\n{}", serde_yaml::to_string(&CloudConfig{
+                write_files: vec![
+                    File{
+                        owner: "root:root".to_string(),
+                        path: "/etc/update-motd.d/69-waifud".to_string(),
+                        permissions: "0755".to_string(),
+                        content: "#!/bin/sh\n#\n# This file is written by waifud.\necho \"\"\necho \"Welcome to waifud <3\"\n".to_string(),
+                    },
+                ],
+                runcmd: vec![
+                    vec!["sh".into(), "-c".into(), "curl -fsSL https://tailscale.com/install.sh | sh".into()],
+                    vec!["systemctl".into(), "enable".into(), "--now".into(), "tailscaled.service".into()],
+                    vec!["tailscale".into(), "up".into(), "--authkey".into(), key_info.key.unwrap()],
+                    vec!["wget".into(), "https://xena.greedo.xeserv.us/pkg/pam_tailscale_0.1.0_amd64.deb".into()],
+                    vec!["dpkg".into(), "-i".into(), "pam_tailscale_0.1.0_amd64.deb".into()],
+                    vec!["sed".into(), "-i".into(), "s/^ChallengeResponseAuthentication.*/ChallengeResponseAuthentication yes/".into(), "/etc/ssh/sshd_config".into()],
+                    vec!["systemctl".into(), "reload".into(), "sshd.service".into()]
+                ],
+            })?))
+        } else {
+            Ok(format!("#cloud-config\n{}", serde_yaml::to_string(&CloudConfig{
+                write_files: vec![
+                    File{
+                        owner: "root:root".into(),
+                        path: "/etc/update-motd.d/69-waifud".into(),
+                        permissions: "0755".into(),
+                        content: "#!/bin/sh\n#\n# This file is written by waifud.\necho \"\"\necho \"Welcome to waifud <3\"\n".into(),
+                    },
+                ],
+                runcmd: vec![
+                    vec!["sh".into(), "-c".into(), "curl -fsSL https://tailscale.com/install.sh | sh".into()],
+                    vec!["systemctl".into(), "enable".into(), "--now".into(), "tailscaled.service".into()],
+                    vec!["tailscale".into(), "up".into(), "--authkey".into(), key_info.key.unwrap()],
+                ],
+            })?))
+        }
+    } else {
+        Ok(include_str!("./vendor-data").to_string())
+    }
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CloudConfig {
+    #[serde(rename = "write_files")]
+    pub write_files: Vec<File>,
+    pub runcmd: Vec<Vec<String>>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct File {
+    pub owner: String,
+    pub path: String,
+    pub permissions: String,
+    pub content: String,
 }

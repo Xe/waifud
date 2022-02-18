@@ -17,6 +17,7 @@ pub struct Instance {
     pub zvol_name: String,
     pub status: String,
     pub distro: String,
+    pub join_tailnet: bool,
 }
 
 impl Instance {
@@ -25,7 +26,7 @@ impl Instance {
         name: String,
     ) -> Result<Self> {
         let mut stmt = conn.prepare(
-            "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name, status, distro FROM instances WHERE name = ?1",
+            "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name, status, distro, join_tailnet FROM instances WHERE name = ?1",
         )?;
         let instance = stmt.query_row(params![name], |row| {
             Ok(Instance {
@@ -38,6 +39,7 @@ impl Instance {
                 zvol_name: row.get(6)?,
                 status: row.get(7)?,
                 distro: row.get(8)?,
+                join_tailnet: row.get(9)?,
             })
         })?;
 
@@ -49,7 +51,7 @@ impl Instance {
         id: Uuid,
     ) -> Result<Self> {
         let mut stmt = conn.prepare(
-            "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name, status, distro FROM instances WHERE uuid = ?1",
+            "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name, status, distro, join_tailnet FROM instances WHERE uuid = ?1",
         )?;
         let instance = stmt.query_row(params![id], |row| {
             Ok(Instance {
@@ -62,6 +64,7 @@ impl Instance {
                 zvol_name: row.get(6)?,
                 status: row.get(7)?,
                 distro: row.get(8)?,
+                join_tailnet: row.get(9)?,
             })
         })?;
 

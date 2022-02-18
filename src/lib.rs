@@ -8,11 +8,7 @@ use axum::{
 use bb8::Pool;
 use bb8_rusqlite::RusqliteConnectionManager;
 use rusqlite::Connection;
-use serde::{Deserialize, Serialize};
-use std::{
-    env, fmt,
-    net::{AddrParseError, IpAddr},
-};
+use std::{env, fmt, net::AddrParseError};
 
 pub const APPLICATION_NAME: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"),);
 
@@ -64,6 +60,9 @@ pub enum Error {
     #[error("json parsing error: {0}")]
     Json(#[from] serde_json::Error),
 
+    #[error("yaml error: {0}")]
+    YAML(#[from] serde_yaml::Error),
+
     #[error("database error: {0}")]
     SQLite(#[from] rusqlite::Error),
 
@@ -87,6 +86,9 @@ pub enum Error {
 
     #[error("url error: {0}")]
     URL(#[from] url::ParseError),
+
+    #[error("tailscale error: {0}")]
+    Tailscale(#[from] tailscale_client::Error),
 
     #[error("other error: {0}")]
     Catchall(String),

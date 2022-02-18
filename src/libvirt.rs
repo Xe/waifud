@@ -13,6 +13,7 @@ pub struct NewInstance {
     pub distro: String,
     pub sata: Option<bool>,
     pub user_data: Option<String>,
+    pub join_tailnet: bool,
 }
 
 pub fn random_mac() -> String {

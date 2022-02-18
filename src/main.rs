@@ -29,7 +29,7 @@ async fn main() -> Result {
                 waifud::APPLICATION_NAME.to_string(),
                 cfg.tailscale.api_key.clone(),
                 cfg.tailscale.tailnet.clone(),
-            ),
+            )?,
         )))
         .layer(AddExtensionLayer::new(Arc::new(State::new().await?)))
         .layer(AddExtensionLayer::new(Arc::new(cfg)));

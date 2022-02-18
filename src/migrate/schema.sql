@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS instances
   , zvol_name TEXT NOT NULL
   , status TEXT NOT NULL DEFAULT 'unknown'
   , distro TEXT NOT NULL
+  , join_tailnet BOOLEAN NOT NULL DEFAULT FALSE
   );
 
 CREATE TABLE IF NOT EXISTS audit_logs

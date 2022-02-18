@@ -292,7 +292,7 @@ pub async fn list(Extension(state): Extension<Arc<State>>) -> Result<Json<Vec<In
     let mut result: Vec<Instance> = Vec::new();
 
     let mut stmt = conn.prepare(
-        "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name, status, distro FROM instances",
+        "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name, status, distro, join_tailnet FROM instances",
     )?;
     let instances = stmt.query_map(params![], |row| {
         Ok(Instance {
@@ -305,6 +305,7 @@ pub async fn list(Extension(state): Extension<Arc<State>>) -> Result<Json<Vec<In
             zvol_name: row.get(6)?,
             status: row.get(7)?,
             distro: row.get(8)?,
+            join_tailnet: row.get(9)?,
         })
     })?;
 
@@ -359,6 +360,7 @@ pub async fn create(
         user_data: details
             .user_data
             .or(Some(include_str!("../../var/xe-base.yaml").into())),
+        join_tailnet: details.join_tailnet.clone(),
     };
 
     let mac_addr = random_mac();
@@ -378,12 +380,13 @@ pub async fn create(
         zvol_name: zvol_name.clone(),
         status: "init".into(),
         distro: details.distro.clone(),
+        join_tailnet: details.join_tailnet.clone(),
     };
 
     {
         let ins = ins.clone();
         conn.execute(
-            "INSERT INTO instances(uuid, name, host, mac_address, memory, disk_size, zvol_name, status, distro) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+            "INSERT INTO instances(uuid, name, host, mac_address, memory, disk_size, zvol_name, status, distro, join_tailnet) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
             params![
                 ins.uuid,
                 ins.name,
@@ -394,6 +397,7 @@ pub async fn create(
                 zvol_name,
                 ins.status,
                 ins.distro,
+                ins.join_tailnet,
             ],
         )?;
         conn.execute(
@@ -422,6 +426,7 @@ pub async fn create(
     Ok(Json(ins))
 }
 
+#[instrument(ret, level = "debug", err, skip(config, state, details, id, mac_addr))]
 async fn make_instance(
     config: Arc<Config>,
     state: Arc<State>,

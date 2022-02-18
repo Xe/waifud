@@ -18,7 +18,7 @@ impl fmt::Debug for Config {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tailscale {
     #[serde(rename = "apiKey")]
     pub api_key: String,
