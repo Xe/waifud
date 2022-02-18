@@ -37,6 +37,8 @@ url = "2"
 bb8-rusqlite = { git = "https://github.com/pleshevskiy/bb8-rusqlite", branch = "bump-rusqlite" }
 virt = { git = "https://gitlab.com/libvirt/libvirt-rust.git", rev = "10456b6e59ec73e8ef418cf0a29a9bf33be8ded6" }
 
+tailscale_client = { path = "./lib/tailscale_client" }
+
 [dependencies.rusqlite]
 version = "0.26"
 features = [ "bundled", "uuid", "serde_json", "chrono" ]
@@ -67,3 +69,6 @@ features = [ "serde", "v4" ]
 
 [build-dependencies]
 ructe = { version = "0.13" }
+
+[workspace]
+members = [ "lib/*" ]

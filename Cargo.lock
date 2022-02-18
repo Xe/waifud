@@ -366,6 +366,7 @@ dependencies = [
  "libc",
  "num-integer",
  "num-traits",
+ "serde",
  "time",
  "winapi",
 ]
@@ -1897,6 +1898,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "tailscale_client"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "tap"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2344,6 +2356,7 @@ dependencies = [
  "serde_json",
  "structopt",
  "tabular",
+ "tailscale_client",
  "thiserror",
  "tokio",
  "tower",
