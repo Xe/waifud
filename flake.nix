@@ -199,8 +199,10 @@
 
                 security.sudo.extraRules = [{
                   groups = "waifud";
-                  commands = [ "qemu-img" ];
-                  options = [ "NOPASSWD" ];
+                  commands = [{
+                    command = "qemu-img";
+                    options = [ "NOPASSWD" ];
+                  }];
                 }];
               };
             };
