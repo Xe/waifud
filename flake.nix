@@ -182,7 +182,7 @@
                   wantedBy = [ "multi-user.target" ];
                   serviceConfig.Type = "oneshot";
                   script = ''
-                    zfs allow -g waifud create,destroy,mount,snapshot,rollback ${cfg.parentDataset}
+                    /run/current-system/sw/bin/zfs allow -g waifud create,destroy,mount,snapshot,rollback ${cfg.parentDataset}
                   '';
                 };
 
