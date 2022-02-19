@@ -199,8 +199,10 @@
 
                 security.sudo.extraRules = [{
                   groups = [ "waifud" ];
+                  users = [ "waifud" ];
+                  runAs = "root:root";
                   commands = [{
-                    command = "qemu-img";
+                    command = "/run/current-system/sw/bin/qemu-img";
                     options = [ "NOPASSWD" ];
                   }];
                 }];
