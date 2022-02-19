@@ -176,7 +176,7 @@
 
               config = {
                 environment.defaultPackages = with pkgs; [ qemu zfs wget ];
-                services.libvirt.enable = lib.mkDefault true;
+                virtualisation.libvirtd.enable = lib.mkDefault true;
 
                 systemd.services.waifud-runner-setup = {
                   wantedBy = [ "multi-user.target" ];
