@@ -198,7 +198,7 @@
                 users.users.waifud.openssh.authorizedKeys.keys = cfg.sshKeys;
 
                 security.sudo.extraRules = [{
-                  groups = "waifud";
+                  groups = [ "waifud" ];
                   commands = [{
                     command = "qemu-img";
                     options = [ "NOPASSWD" ];
