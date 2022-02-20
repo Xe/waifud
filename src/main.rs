@@ -2,6 +2,7 @@
 extern crate tracing;
 
 use axum::{
+    extract::extractor_middleware,
     routing::{delete, get, post},
     AddExtensionLayer, Router,
 };
@@ -34,17 +35,21 @@ async fn main() -> Result {
         .layer(AddExtensionLayer::new(Arc::new(State::new().await?)))
         .layer(AddExtensionLayer::new(Arc::new(cfg)));
 
-    let app = Router::new()
-        .route("/api/v1/auditlogs", get(audit::list))
-        .route("/api/v1/distros", get(distros::list))
-        .route("/api/v1/distros", post(distros::create))
-        .route("/api/v1/distros/:name", post(distros::update))
-        .route("/api/v1/distros/:name", get(distros::get))
-        .route("/api/v1/distros/:name", delete(distros::delete))
-        .route("/api/v1/instances", post(instances::create))
-        .route("/api/v1/instances", get(instances::list))
-        .route("/api/v1/instances/:id", get(instances::get))
-        .route("/api/v1/instances/:id/reinit", post(instances::reinit))
+    let auth_middleware = middleware
+        .clone()
+        .layer(extractor_middleware::<waifud::paseto::RequireAuth>());
+
+    let api = Router::new()
+        .route("/auditlogs", get(audit::list))
+        .route("/distros", get(distros::list))
+        .route("/distros", post(distros::create))
+        .route("/distros/:name", post(distros::update))
+        .route("/distros/:name", get(distros::get))
+        .route("/distros/:name", delete(distros::delete))
+        .route("/instances", post(instances::create))
+        .route("/instances", get(instances::list))
+        .route("/instances/:id", get(instances::get))
+        .route("/instances/:id/reinit", post(instances::reinit))
         .route(
             "/api/v1/instances/:id/hardreboot",
             post(instances::hard_reboot),
@@ -56,6 +61,10 @@ async fn main() -> Result {
         .route("/api/v1/instances/:id", delete(instances::delete))
         .route("/api/v1/instances/:id/machine", get(instances::get_machine))
         .route("/api/v1/libvirt/machines", get(api::libvirt::get_machines))
+        .layer(auth_middleware);
+
+    let app = Router::new()
+        .nest("/api/v1", api)
         .route("/api/cloudinit/:id/meta-data", get(cloudinit::meta_data))
         .route("/api/cloudinit/:id/user-data", get(cloudinit::user_data))
         .route(

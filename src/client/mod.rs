@@ -4,6 +4,7 @@ use crate::{
     models::{AuditEvent, Distro, Instance},
     Result,
 };
+use reqwest::header;
 use std::time::Duration;
 use url::Url;
 use uuid::Uuid;
@@ -14,8 +15,15 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(base_url: String) -> Result<Self> {
+    pub fn new(base_url: String, token: String) -> Result<Self> {
+        let mut headers = header::HeaderMap::new();
+        headers.insert(
+            header::AUTHORIZATION,
+            header::HeaderValue::from_str(&token).unwrap(),
+        );
+
         let cli = reqwest::Client::builder()
+            .default_headers(headers)
             .connect_timeout(Duration::from_millis(500))
             .build()?;
 

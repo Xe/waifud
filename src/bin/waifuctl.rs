@@ -2,6 +2,7 @@
 extern crate tracing;
 
 use chrono::prelude::*;
+use ring::signature::Ed25519KeyPair;
 use serde::{Deserialize, Serialize};
 use serde_dhall::StaticType;
 use std::{
@@ -37,12 +38,18 @@ struct Config {
     /// waifud host to connect to
     pub host: String,
 
+    /// Authentication token
+    pub token: String,
+
     /// Default cloudconfig to preload into every VM
     pub userdata: String,
 }
 
 #[derive(StructOpt, Debug)]
 enum ConfigCmd {
+    /// Generate a new Paseto keypair
+    GeneratePasetoKeypair,
+
     /// Shows current config
     Show,
 
@@ -488,6 +495,15 @@ fn config_set_userdata(cfg: Config) -> Result {
     Ok(())
 }
 
+fn config_generate_paseto_keypair() -> Result {
+    let kp = Ed25519KeyPair::generate_pkcs8(&ring::rand::SystemRandom::new()).unwrap();
+    let key_doc: &[u8] = kp.as_ref();
+
+    println!("{}", hex::encode(key_doc));
+
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
@@ -506,6 +522,7 @@ async fn main() -> Result<()> {
                 let mut fout = fs::File::create(&fname).unwrap();
                 let cfg = serde_dhall::serialize(&Config {
                     host: "http://[::]:23818".into(),
+                    token: "".to_string(),
                     userdata: include_str!("../../var/base.yaml").to_string(),
                 })
                 .static_type_annotation()
@@ -524,7 +541,7 @@ async fn main() -> Result<()> {
 
     debug!("{:?}", opt);
 
-    let cli = Client::new(opt.host.unwrap())?;
+    let cli = Client::new(opt.host.unwrap(), cfg.token.clone())?;
 
     if let Err(why) = match opt.cmd {
         Command::Audit { json } => audit_list(cli, json).await,
@@ -542,6 +559,7 @@ async fn main() -> Result<()> {
         Command::Start { name } => start_instance(cli, name).await,
         Command::Shutdown { name } => shutdown_instance(cli, name).await,
         Command::Config { cmd } => match cmd {
+            ConfigCmd::GeneratePasetoKeypair => config_generate_paseto_keypair(),
             ConfigCmd::Show => config_show(cfg),
             ConfigCmd::SetHost { url } => config_set_host(cfg, url),
             ConfigCmd::SetUserdata => config_set_userdata(cfg),

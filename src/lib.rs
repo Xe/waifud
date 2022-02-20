@@ -26,6 +26,7 @@ pub mod libvirt;
 pub mod migrate;
 pub mod models;
 pub mod namegen;
+pub mod paseto;
 
 pub use config::Config;
 
@@ -96,6 +97,12 @@ pub enum Error {
     #[error("{0}")]
     Anyhow(#[from] anyhow::Error),
 
+    #[error("hex decode error: {0}")]
+    Hex(#[from] hex::FromHexError),
+
+    #[error("key pair rejected: {0}")]
+    RingKeyPairRejected(#[from] ring::error::KeyRejected),
+
     // Application errors
     #[error("host {0} doesn't exist")]
     HostDoesntExist(String),
@@ -120,6 +127,12 @@ pub enum Error {
 
     #[error("can't create zfs init snapshot on {0}:\n\n{1}")]
     CantMakeInitSnapshot(String, String),
+
+    #[error("internal middleware logic error")]
+    BadMiddlewareStack,
+
+    #[error("insufficient authorization to perform this action")]
+    Unauthorized,
 }
 
 impl<E> From<bb8::RunError<E>> for Error
@@ -141,6 +154,10 @@ impl IntoResponse for Error {
 impl Into<(StatusCode, String)> for Error {
     fn into(self) -> (StatusCode, String) {
         match self {
+            Error::Unauthorized => (
+                StatusCode::UNAUTHORIZED,
+                "you lack authorization".to_string(),
+            ),
             Error::Libvirt(why) => (StatusCode::INTERNAL_SERVER_ERROR, why.message),
             Error::Dhall(why) => (StatusCode::BAD_REQUEST, format!("{}", why)),
             Error::SQLite(err) => match err {

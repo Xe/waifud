@@ -10,6 +10,8 @@ pub struct Config {
     pub bind_host: IpAddr,
     pub port: u16,
     pub tailscale: Tailscale,
+    #[serde(rename = "pasetoKeypair")]
+    pub paseto_keypair: String,
 }
 
 impl fmt::Debug for Config {
