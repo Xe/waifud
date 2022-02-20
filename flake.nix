@@ -227,6 +227,7 @@
               jq
               jo
             ];
+            DATABASE_URL = "./var/waifud.db";
             RUST_SRC_PATH = rustPlatform.rustLibSrc;
           };
       });

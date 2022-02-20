@@ -2,6 +2,7 @@
 var/*.xml
 config.dhall
 result
+.direnv
 
 # Added by cargo
 
