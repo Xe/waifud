@@ -1,19 +1,24 @@
-use crate::{models::Distro, Result};
+use crate::{establish_connection, models::Distro};
+use anyhow::Result;
 use rusqlite::{params, Connection};
+use rusqlite_migration::{Migrations, M};
 
 #[instrument(err)]
-pub fn run() -> Result {
+pub fn run() -> Result<()> {
     info!("running");
-    let connection = crate::establish_connection()?;
+    let mut conn = establish_connection()?;
 
-    connection.execute_batch(include_str!("./schema.sql"))?;
+    let migrations = Migrations::new(vec![M::up(include_str!("./base_schema.sql"))]);
+    conn.pragma_update(None, "journal_mode", &"WAL").unwrap();
 
-    load_distros(connection)?;
+    migrations.to_latest(&mut conn)?;
+
+    load_distros(conn)?;
 
     Ok(())
 }
 
-fn load_distros(conn: Connection) -> Result {
+fn load_distros(conn: Connection) -> Result<()> {
     let count = conn.query_row("SELECT COUNT(*) FROM distros", params![], |row| {
         row.get::<_, i64>(0)
     })?;
