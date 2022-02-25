@@ -50,17 +50,14 @@ async fn main() -> Result {
         .route("/instances", get(instances::list))
         .route("/instances/:id", get(instances::get))
         .route("/instances/:id/reinit", post(instances::reinit))
-        .route(
-            "/api/v1/instances/:id/hardreboot",
-            post(instances::hard_reboot),
-        )
-        .route("/api/v1/instances/:id/reboot", post(instances::reboot))
-        .route("/api/v1/instances/:id/start", post(instances::start))
-        .route("/api/v1/instances/:id/shutdown", post(instances::shutdown))
-        .route("/api/v1/instances/name/:name", get(instances::get_by_name))
-        .route("/api/v1/instances/:id", delete(instances::delete))
-        .route("/api/v1/instances/:id/machine", get(instances::get_machine))
-        .route("/api/v1/libvirt/machines", get(api::libvirt::get_machines))
+        .route("/instances/:id/hardreboot", post(instances::hard_reboot))
+        .route("/instances/:id/reboot", post(instances::reboot))
+        .route("/instances/:id/start", post(instances::start))
+        .route("/instances/:id/shutdown", post(instances::shutdown))
+        .route("/instances/name/:name", get(instances::get_by_name))
+        .route("/instances/:id", delete(instances::delete))
+        .route("/instances/:id/machine", get(instances::get_machine))
+        .route("/libvirt/machines", get(api::libvirt::get_machines))
         .layer(auth_middleware);
 
     let app = Router::new()
