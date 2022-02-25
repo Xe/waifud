@@ -8,7 +8,7 @@ use serde_dhall::StaticType;
 use std::{
     convert::TryInto,
     fs,
-    io::{self, stdout, Write},
+    io::{self, prelude::*, stdout, Write},
     path::PathBuf,
     process::exit,
     time::Duration,
@@ -39,7 +39,7 @@ struct Config {
     pub host: String,
 
     /// Authentication token
-    pub token: String,
+    pub token: Option<String>,
 
     /// Default cloudconfig to preload into every VM
     pub userdata: String,
@@ -49,6 +49,9 @@ struct Config {
 enum ConfigCmd {
     /// Generate a new Paseto keypair
     GeneratePasetoKeypair,
+
+    /// Make a new auth token and save it to the config file
+    Login,
 
     /// Shows current config
     Show,
@@ -445,6 +448,31 @@ async fn audit_list(cli: Client, json: bool) -> Result<()> {
     Ok(())
 }
 
+async fn config_login(cfg: Config) -> Result {
+    let mut cfg = cfg.clone();
+
+    print!("press your yubikey: ");
+    io::stdout().flush()?;
+    let otp = io::stdin().lock().lines().next().unwrap().unwrap();
+
+    let resp = Client::login(cfg.host.clone(), otp).await?;
+
+    cfg.token = Some(resp.token);
+
+    let mut fname = dirs::config_dir().unwrap();
+    fname.push("xeserv");
+    let _ = fs::create_dir_all(&fname);
+    fname.push("waifuctl");
+    fname.set_extension("dhall");
+    let mut fout = fs::File::create(&fname).unwrap();
+    let cfg = serde_dhall::serialize(&cfg)
+        .static_type_annotation()
+        .to_string()?;
+    fout.write_all(cfg.as_bytes())?;
+
+    Ok(())
+}
+
 fn config_show(cfg: Config) -> Result {
     println!("waifud host: {}", cfg.host);
     println!("default cloudconfig:\n\n{}", cfg.userdata);
@@ -522,7 +550,7 @@ async fn main() -> Result<()> {
                 let mut fout = fs::File::create(&fname).unwrap();
                 let cfg = serde_dhall::serialize(&Config {
                     host: "http://[::]:23818".into(),
-                    token: "".to_string(),
+                    token: None,
                     userdata: include_str!("../../var/base.yaml").to_string(),
                 })
                 .static_type_annotation()
@@ -541,7 +569,14 @@ async fn main() -> Result<()> {
 
     debug!("{:?}", opt);
 
-    let cli = Client::new(opt.host.unwrap(), cfg.token.clone())?;
+    if cfg.token.is_none() {
+        println!("welcome to waifud, you may want to run `waifuctl config set-host` and `waifuctl config login`");
+    }
+
+    let cli = Client::new(
+        opt.host.unwrap(),
+        cfg.token.clone().unwrap_or("".to_string()),
+    )?;
 
     if let Err(why) = match opt.cmd {
         Command::Audit { json } => audit_list(cli, json).await,
@@ -560,6 +595,7 @@ async fn main() -> Result<()> {
         Command::Shutdown { name } => shutdown_instance(cli, name).await,
         Command::Config { cmd } => match cmd {
             ConfigCmd::GeneratePasetoKeypair => config_generate_paseto_keypair(),
+            ConfigCmd::Login => config_login(cfg).await,
             ConfigCmd::Show => config_show(cfg),
             ConfigCmd::SetHost { url } => config_set_host(cfg, url),
             ConfigCmd::SetUserdata => config_set_userdata(cfg),

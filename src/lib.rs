@@ -103,6 +103,9 @@ pub enum Error {
     #[error("key pair rejected: {0}")]
     RingKeyPairRejected(#[from] ring::error::KeyRejected),
 
+    #[error("yubikey OTP error: {0}")]
+    Yubico(#[from] yubico::yubicoerror::YubicoError),
+
     // Application errors
     #[error("host {0} doesn't exist")]
     HostDoesntExist(String),
@@ -133,6 +136,9 @@ pub enum Error {
 
     #[error("insufficient authorization to perform this action")]
     Unauthorized,
+
+    #[error("can't make token: {0}")]
+    CantMakeToken(String),
 }
 
 impl<E> From<bb8::RunError<E>> for Error

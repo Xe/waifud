@@ -2698,6 +2698,7 @@ dependencies = [
  "chrono",
  "dirs",
  "edit",
+ "failure",
  "hex",
  "hyper",
  "mac_address",

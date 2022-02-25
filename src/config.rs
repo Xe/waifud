@@ -12,6 +12,7 @@ pub struct Config {
     pub tailscale: Tailscale,
     #[serde(rename = "pasetoKeypair")]
     pub paseto_keypair: String,
+    pub yubikey: Yubikey,
 }
 
 impl fmt::Debug for Config {
@@ -25,4 +26,11 @@ pub struct Tailscale {
     #[serde(rename = "apiKey")]
     pub api_key: String,
     pub tailnet: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Yubikey {
+    #[serde(rename = "clientID")]
+    pub client_id: String,
+    pub key: String,
 }

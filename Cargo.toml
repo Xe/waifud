@@ -21,6 +21,7 @@ bb8 = "0.7"
 chrono = "0.4"
 dirs = "4"
 edit = "0.1"
+failure = "0.1"
 hex = { version = "0.4", features = [ "serde" ] }
 hyper = "0.14"
 mac_address = "1"

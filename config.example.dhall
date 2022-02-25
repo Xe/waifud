@@ -6,6 +6,12 @@ let Tailscale =
         }
       }
 
+let Yubikey =
+      { Type = { clientID : Text, key : Text }
+      , default =
+        { clientID = env:YUBIKEY_CLIENT_ID ? "", key = env:YUBIKEY_KEY ? "" }
+      }
+
 let Config =
       { Type =
           { baseURL : Text
@@ -13,6 +19,7 @@ let Config =
           , bindHost : Text
           , port : Natural
           , tailscale : Tailscale.Type
+          , yubikey : Yubikey.Type
           }
       , default =
         { baseURL = "http://192.168.122.1:23818"
@@ -20,6 +27,7 @@ let Config =
         , bindHost = "::"
         , port = 23818
         , tailscale = Tailscale::{=}
+        , yubikey = Yubikey::{=}
         }
       }
 

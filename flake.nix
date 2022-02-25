@@ -217,6 +217,7 @@
               cargo-watch
               rustc
               rustfmt
+              rust-analyzer
               pre-commit
               rustPackages.clippy
               openssl

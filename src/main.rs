@@ -13,6 +13,7 @@ use waifud::{
     api::{self, audit, cloudinit, distros, instances},
     Config, Result, State,
 };
+use yubico::config::Config as YKConfig;
 
 #[tokio::main]
 async fn main() -> Result {
@@ -21,6 +22,10 @@ async fn main() -> Result {
     waifud::migrate::run()?;
 
     let cfg: Config = serde_dhall::from_file("./config.dhall").parse()?;
+
+    let yk: YKConfig = YKConfig::default()
+        .set_client_id(cfg.yubikey.client_id.clone())
+        .set_key(cfg.yubikey.key.clone());
 
     let middleware = tower::ServiceBuilder::new()
         .layer(TraceLayer::new_for_http())
@@ -33,7 +38,8 @@ async fn main() -> Result {
             )?,
         )))
         .layer(AddExtensionLayer::new(Arc::new(State::new().await?)))
-        .layer(AddExtensionLayer::new(Arc::new(cfg)));
+        .layer(AddExtensionLayer::new(Arc::new(cfg)))
+        .layer(AddExtensionLayer::new(Arc::new(yk)));
 
     let auth_middleware = middleware
         .clone()
@@ -68,6 +74,7 @@ async fn main() -> Result {
             "/api/cloudinit/:id/vendor-data",
             get(cloudinit::vendor_data),
         )
+        .route("/api/login", post(waifud::paseto::login))
         .layer(middleware);
 
     let addr = &"[::]:23818".parse()?;

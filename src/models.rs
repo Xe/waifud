@@ -151,3 +151,30 @@ impl AuditEvent {
         Ok(vals)
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Session {
+    pub uuid: Uuid,
+    pub user: String,
+    pub expired: bool,
+}
+
+impl Session {
+    #[instrument(skip(conn), err)]
+    pub fn get(
+        conn: &PooledConnection<'_, RusqliteConnectionManager>,
+        id: Uuid,
+    ) -> Result<Session> {
+        Ok(conn.query_row(
+            "SELECT (uuid, user, expired) FROM sessions WHERE uuid = ?1",
+            params![id],
+            |row| {
+                Ok(Session {
+                    uuid: row.get(0)?,
+                    user: row.get(1)?,
+                    expired: row.get(2)?,
+                })
+            },
+        )?)
+    }
+}
