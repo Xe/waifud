@@ -444,6 +444,7 @@ async fn make_instance(
     debug!("checking if image exists");
     let output = Command::new("ssh")
         .args([
+            "-oStrictHostKeyChecking=accept-new",
             &details.host.clone(),
             "stat",
             &format!("$HOME/.cache/within/mkvm/qcow2/{}", distro.sha256sum),
@@ -476,6 +477,7 @@ async fn make_instance(
 
             Command::new("ssh")
                 .args([
+                    "-oStrictHostKeyChecking=accept-new",
                     &details.host.clone(),
                     "rm",
                     &format!("$HOME/.cache/within/mkvm/qcow2/{}", distro.sha256sum),
@@ -492,6 +494,7 @@ async fn make_instance(
     debug!("making zvol");
     let output = Command::new("ssh")
         .args([
+            "-oStrictHostKeyChecking=accept-new",
             &details.host.clone(),
             "sudo",
             "zfs",
@@ -522,6 +525,7 @@ async fn make_instance(
     )?;
     let output = Command::new("ssh")
         .args([
+            "-oStrictHostKeyChecking=accept-new",
             &details.host.clone(),
             "sudo",
             "qemu-img",
@@ -544,6 +548,7 @@ async fn make_instance(
     debug!("making init snapshot");
     let output = Command::new("ssh")
         .args([
+            "-oStrictHostKeyChecking=accept-new",
             &details.host.clone(),
             "sudo",
             "zfs",

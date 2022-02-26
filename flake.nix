@@ -1,5 +1,4 @@
 {
-
   inputs = {
     naersk.url = "github:nmattia/naersk/master";
     naersk.inputs.nixpkgs.follows = "nixpkgs";
@@ -66,54 +65,12 @@
 
           waifud-host = { lib, pkgs, config, ... }:
             with lib;
-            let
-              cfg = config.xeserv.waifud;
-              cfgJSON = pkgs.writeTextFile {
-                name = "waifud.json";
-                text = toJSON cfg;
-              };
-              cfgDhall = pkgs.stdenv.mkDerivation {
-                name = "waifud-config-latest";
-                src = cfgJSON;
-                inputs = [ pkgs.dhall-json ];
-                phases = "installPhase";
-                installPhase = ''
-                  cat $src | json-to-dhall --output $out
-                '';
-              };
+            let cfg = config.xeserv.waifud;
             in {
               imports = [
                 self.nixosModules."${system}".waifud-common
                 self.nixosModules."${system}".waifuctl
               ];
-
-              options = {
-                baseURL = mkOption {
-                  type = types.str;
-                  default = "http://192.168.122.1:23818";
-                  description =
-                    "the base URL for VMs to poke waifud for config";
-                };
-
-                hosts = mkOption {
-                  type = with types; listOf str;
-                  default = [ "kos-mos" "logos" "ontos" "pneuma" ];
-                  description =
-                    "the list of hosts that waifud can manage (ip address/domain name)";
-                };
-
-                bindHost = mkOption {
-                  type = types.str;
-                  default = "::";
-                  description = "the host to bind waifud on";
-                };
-
-                port = mkOption {
-                  type = types.port;
-                  default = 23818;
-                  description = "the port that waifud should bind on";
-                };
-              };
 
               config = {
                 systemd.services = {
@@ -129,13 +86,33 @@
                     };
                   };
 
+                  waifud-ssh-loadkey = {
+                    wantedBy = [ "multi-user.target" ];
+                    after = [ "waifud-ssh-agent" ];
+
+                    environment.SSH_AUTH_SOCK = "/var/lib/waifud/agent.sock";
+                    unitConfig.ConditionPathExists =
+                      "/var/lib/waifud/id_ed25519";
+                    serviceConfig = {
+                      User = "waifud";
+                      Group = "waifud";
+                      Restart = "always";
+                      WorkingDirectory = "/var/lib/waifud";
+                      ExecStart =
+                        "${pkgs.openssh}/bin/ssh-add /var/lib/waifud/id_ed25519";
+                    };
+                  };
+
                   waifud = {
                     wantedBy = [ "multi-user.target" ];
+                    after = [ "waifud-ssh-agent" ];
 
                     environment = {
                       RUST_LOG = "tower_http=debug,waifud=debug,info";
                       SSH_AUTH_SOCK = "/var/lib/waifud/agent.sock";
                     };
+                    unitConfig.ConditionPathExists =
+                      "/var/lib/waifud/config.dhall";
                     serviceConfig = {
                       User = "waifud";
                       Group = "waifud";

@@ -18,6 +18,7 @@ let Config =
           , hosts : List Text
           , bindHost : Text
           , port : Natural
+          , pasetoKeypair : Text
           , tailscale : Tailscale.Type
           , yubikey : Yubikey.Type
           }
@@ -26,6 +27,7 @@ let Config =
         , hosts = [ "vmhost1", "vmhost2" ]
         , bindHost = "::"
         , port = 23818
+        , pasetoKeypair = env:PASETO_KEYPAIR ? ""
         , tailscale = Tailscale::{=}
         , yubikey = Yubikey::{=}
         }
