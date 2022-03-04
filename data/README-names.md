@@ -49,6 +49,7 @@ Combine all of the files like this:
 
 ```console
 $ jq -n '[inputs] | add' \
+    blaseball.json \
     names-blades.json \
     names-ponies-earth.json \
     names-ponies-pegasus.json \
