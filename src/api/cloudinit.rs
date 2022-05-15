@@ -62,8 +62,8 @@ pub async fn vendor_data(
     if i.join_tailnet {
         let key_info = ts
             .create_key(tailscale_client::Capabilities {
-                ephemeral: true,
                 reusable: false,
+                ephemeral: true,
             })
             .await?;
 
@@ -76,7 +76,7 @@ pub async fn vendor_data(
             ],
         )?;
 
-        if i.distro == "ubuntu-20.04".to_string() {
+        if i.distro == "ubuntu-20.04".to_string() || i.distro == "ubuntu-22.04".to_string() {
             Ok(format!("#cloud-config\n{}", serde_yaml::to_string(&CloudConfig{
                 write_files: vec![
                     File{
@@ -89,11 +89,8 @@ pub async fn vendor_data(
                 runcmd: vec![
                     vec!["sh".into(), "-c".into(), "curl -fsSL https://tailscale.com/install.sh | sh".into()],
                     vec!["systemctl".into(), "enable".into(), "--now".into(), "tailscaled.service".into()],
-                    vec!["tailscale".into(), "up".into(), "--authkey".into(), key_info.key.unwrap()],
-                    vec!["wget".into(), "https://xena.greedo.xeserv.us/pkg/pam_tailscale_0.1.0_amd64.deb".into()],
-                    vec!["dpkg".into(), "-i".into(), "pam_tailscale_0.1.0_amd64.deb".into()],
-                    vec!["sed".into(), "-i".into(), "s/^ChallengeResponseAuthentication.*/ChallengeResponseAuthentication yes/".into(), "/etc/ssh/sshd_config".into()],
-                    vec!["systemctl".into(), "reload".into(), "sshd.service".into()]
+                    vec!["tailscale".into(), "up".into(), "--authkey".into(), key_info.key.unwrap(), "--ssh".into(), "--advertise-tags=tag:vm".into()],
+                    vec!["apt".into(), "install".into(), "-y".into(), "systemd-container".into()]
                 ],
             })?))
         } else {
@@ -109,7 +106,7 @@ pub async fn vendor_data(
                 runcmd: vec![
                     vec!["sh".into(), "-c".into(), "curl -fsSL https://tailscale.com/install.sh | sh".into()],
                     vec!["systemctl".into(), "enable".into(), "--now".into(), "tailscaled.service".into()],
-                    vec!["tailscale".into(), "up".into(), "--authkey".into(), key_info.key.unwrap()],
+                    vec!["tailscale".into(), "up".into(), "--authkey".into(), key_info.key.unwrap(), "--ssh".into()],
                 ],
             })?))
         }
