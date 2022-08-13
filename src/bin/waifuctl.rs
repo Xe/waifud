@@ -2,6 +2,7 @@
 extern crate tracing;
 
 use chrono::prelude::*;
+use clap::{Args, Parser, Subcommand};
 use ring::signature::Ed25519KeyPair;
 use serde::{Deserialize, Serialize};
 use serde_dhall::StaticType;
@@ -13,7 +14,6 @@ use std::{
     process::exit,
     time::Duration,
 };
-use structopt::StructOpt;
 use tabular::{row, Table};
 use waifud::{
     client::Client,
@@ -22,14 +22,16 @@ use waifud::{
     Error, Result,
 };
 
-#[derive(StructOpt, Debug)]
+#[derive(Debug, Parser)]
+#[clap(author, version, about, long_about = None)]
+#[clap(propagate_version = true)]
 /// waifuctl lets you manage VM instances on waifud.
 struct Opt {
     /// waifud host to connect to
-    #[structopt(short, long)]
+    #[clap(short, long)]
     pub host: Option<String>,
 
-    #[structopt(subcommand)]
+    #[clap(subcommand)]
     cmd: Command,
 }
 
@@ -45,7 +47,7 @@ struct Config {
     pub userdata: String,
 }
 
-#[derive(StructOpt, Debug)]
+#[derive(Subcommand, Debug)]
 enum ConfigCmd {
     /// Generate a new Paseto keypair
     GeneratePasetoKeypair,
@@ -66,17 +68,17 @@ enum ConfigCmd {
     SetUserdata,
 }
 
-#[derive(StructOpt, Debug)]
+#[derive(Subcommand, Debug)]
 enum Command {
     /// Manage audit logs
     Audit {
         /// Format all audit logs in JSON
-        #[structopt(long)]
+        #[clap(long)]
         json: bool,
     },
     /// Manage waifuctl configuration
     Config {
-        #[structopt(subcommand)]
+        #[clap(subcommand)]
         cmd: ConfigCmd,
     },
     /// List all instances
@@ -88,7 +90,7 @@ enum Command {
         name: String,
     },
     Distro {
-        #[structopt(subcommand)]
+        #[clap(subcommand)]
         cmd: DistroCmd,
     },
     /// Reset a VM back to factory settings
@@ -112,48 +114,53 @@ enum Command {
         name: String,
 
         /// Unsafely force reboot
-        #[structopt(short, long)]
+        #[clap(short, long)]
         hard: bool,
+    },
+    /// Utilities to help with managing the waifuctl project
+    Utils {
+        #[clap(subcommand)]
+        cmd: UtilsCmd,
     },
 }
 
 /// Create a new instance
-#[derive(StructOpt, Debug)]
+#[derive(Args, Debug)]
 struct CreateOpts {
     /// Instance name, leave blank to autogenerate
-    #[structopt(short, long)]
+    #[clap(short, long)]
     name: Option<String>,
 
     /// Memory in megabytes
-    #[structopt(short, long, default_value = "512")]
+    #[clap(short, long, default_value = "512")]
     memory: i32,
 
     /// CPU cores
-    #[structopt(short, long, default_value = "2")]
+    #[clap(short, long, default_value = "2")]
     cpus: i32,
 
     /// Host to put the VM on
-    #[structopt(short, long)]
+    #[clap(short, long)]
     host: String,
 
     /// Disk size in GB, leave blank to use distribution default
-    #[structopt(short = "s", long = "disk-size")]
+    #[clap(short = 's', long = "disk-size")]
     disk_size: Option<i32>,
 
     /// ZFS dataset to put the VM disk in
-    #[structopt(short, long = "zvol", default_value = "rpool/local/vms")]
+    #[clap(short, long = "zvol", default_value = "rpool/local/vms")]
     zvol_prefix: String,
 
     /// File containing cloud-init user data, if not set will default to configured value
-    #[structopt(short, long)]
+    #[clap(short, long)]
     user_data: Option<PathBuf>,
 
     /// Distribution to use
-    #[structopt(short, long)]
+    #[clap(short, long)]
     distro: String,
 
     /// Automagically join the tailnet
-    #[structopt(short, long)]
+    #[clap(short, long)]
     join_tailnet: bool,
 }
 
@@ -182,7 +189,7 @@ impl TryInto<NewInstance> for CreateOpts {
 }
 
 /// Manage distribution images in waifud
-#[derive(StructOpt, Debug)]
+#[derive(Subcommand, Debug)]
 enum DistroCmd {
     /// Create a new base distro snapshot
     Create(CreateDistroOpts),
@@ -191,7 +198,7 @@ enum DistroCmd {
     /// List all distros
     List {
         /// Show more information
-        #[structopt(short)]
+        #[clap(short)]
         verbose: bool,
     },
     /// Scrapes current versions for distributions
@@ -201,26 +208,26 @@ enum DistroCmd {
 }
 
 /// Defines a base distro snapshot for waifud to use
-#[derive(StructOpt, Debug)]
+#[derive(Args, Debug)]
 struct CreateDistroOpts {
     /// Distribution name, include the version as a suffix
-    #[structopt(short, long)]
+    #[clap(short, long)]
     pub name: String,
 
     /// Download URL for the qcow2 base snapshot
-    #[structopt(short, long = "download-url")]
+    #[clap(short, long = "download-url")]
     pub download_url: String,
 
     /// The sha256 of the qcow2 base snapshot
-    #[structopt(short, long = "sha256")]
+    #[clap(short, long = "sha256")]
     pub sha256sum: String,
 
     /// The minimum size of a VM created from this snapshot (gigabytes)
-    #[structopt(short, long)]
+    #[clap(short, long)]
     pub min_size: i32,
 
     /// The format of the disk image
-    #[structopt(short, long, default_value = "waifud://qcow2")]
+    #[clap(short, long, default_value = "waifud://qcow2")]
     pub format: String,
 }
 
@@ -234,6 +241,11 @@ impl Into<Distro> for CreateDistroOpts {
             format: self.format,
         }
     }
+}
+
+#[derive(Subcommand, Debug)]
+enum UtilsCmd {
+    Manpage { path: PathBuf },
 }
 
 async fn list_instances(cli: Client) -> Result {
@@ -547,6 +559,10 @@ fn config_generate_paseto_keypair() -> Result {
     Ok(())
 }
 
+fn utils_gen_manpage(path: PathBuf) -> Result {
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
@@ -615,6 +631,9 @@ async fn main() -> Result<()> {
             ConfigCmd::Show => config_show(cfg),
             ConfigCmd::SetHost { url } => config_set_host(cfg, url),
             ConfigCmd::SetUserdata => config_set_userdata(cfg),
+        },
+        Command::Utils { cmd } => match cmd {
+            UtilsCmd::Manpage { path } => utils_gen_manpage(path),
         },
     } {
         eprintln!("OOPSIE WOOPSIE!! Uwu We made a fucky wucky!! A wittle fucko boingo! The code monkeys at our headquarters are working VEWY HAWD to fix this!");
