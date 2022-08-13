@@ -194,6 +194,8 @@ enum DistroCmd {
         #[structopt(short)]
         verbose: bool,
     },
+    /// Scrapes current versions for distributions
+    Scrape,
     /// Updates a base distro snapshot
     Update(CreateDistroOpts),
 }
@@ -242,14 +244,17 @@ async fn list_instances(cli: Client) -> Result {
         "name", "host", "distro", "memory", "ip", "status", "id"
     ));
     for instance in instances {
-        let m = cli.get_instance_machine(instance.uuid).await?;
+        let m = cli.get_instance_machine(instance.uuid).await;
 
         table.add_row(row!(
             instance.name,
             instance.host,
             instance.distro,
             instance.memory,
-            m.addr.unwrap_or("".into()),
+            match m {
+                Ok(m) => m.addr.unwrap_or("".into()),
+                Err(_) => "".to_string(),
+            },
             instance.status,
             instance.uuid,
         ));
@@ -385,6 +390,16 @@ async fn update_distro(cli: Client, opts: CreateDistroOpts) -> Result {
     let d: Distro = opts.into();
     let d = cli.update_distro(d).await?;
     println!("created {}", d.name);
+
+    Ok(())
+}
+
+async fn scrape_distros(cli: Client) -> Result {
+    let distros = waifud::scrape::get_all().await?;
+    for distro in distros {
+        cli.update_distro(distro.clone()).await?;
+        println!("updated {}", distro.name);
+    }
 
     Ok(())
 }
@@ -584,6 +599,7 @@ async fn main() -> Result<()> {
             DistroCmd::Create(opts) => create_distro(cli, opts).await,
             DistroCmd::Delete { name } => delete_distro(cli, name).await,
             DistroCmd::List { verbose } => list_distros(cli, verbose).await,
+            DistroCmd::Scrape => scrape_distros(cli).await,
             DistroCmd::Update(opts) => update_distro(cli, opts).await,
         },
         Command::List => list_instances(cli).await,

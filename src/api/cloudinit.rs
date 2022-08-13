@@ -64,6 +64,8 @@ pub async fn vendor_data(
             .create_key(tailscale_client::Capabilities {
                 reusable: false,
                 ephemeral: true,
+                preauthorized: true,
+                tags: vec!["tag:vm".to_string()],
             })
             .await?;
 

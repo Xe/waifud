@@ -64,6 +64,8 @@ fn test_keyinfo_partial() {
 pub struct Capabilities {
     pub reusable: bool,
     pub ephemeral: bool,
+    pub preauthorized: bool,
+    pub tags: Vec<String>,
 }
 
 impl Client {

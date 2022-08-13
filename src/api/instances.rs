@@ -48,8 +48,8 @@ pub async fn reinit(
     debug!("rolling back zvol");
     let output = Command::new("ssh")
         .args([
+            "-lroot",
             &i.host,
-            "sudo",
             "zfs",
             "rollback",
             &format!("{}@init", i.zvol_name),
@@ -121,7 +121,7 @@ pub async fn delete(
 
     debug!("destroying zvol");
     let output = Command::new("ssh")
-        .args([&i.host, "sudo", "zfs", "destroy", "-rf", &i.zvol_name])
+        .args(["-lroot", &i.host, "zfs", "destroy", "-rf", &i.zvol_name])
         .output()
         .await?;
     if output.status != ExitStatus::from_raw(0) {
@@ -494,9 +494,9 @@ async fn make_instance(
     debug!("making zvol");
     let output = Command::new("ssh")
         .args([
+            "-lroot",
             "-oStrictHostKeyChecking=accept-new",
             &details.host.clone(),
-            "sudo",
             "zfs",
             "create",
             "-V",
@@ -525,14 +525,14 @@ async fn make_instance(
     )?;
     let output = Command::new("ssh")
         .args([
+            "-lroot",
             "-oStrictHostKeyChecking=accept-new",
             &details.host.clone(),
-            "sudo",
             "qemu-img",
             "convert",
             "-O",
             "raw",
-            &format!("$HOME/.cache/within/mkvm/qcow2/{}", distro.sha256sum),
+            &format!("/home/cadey/.cache/within/mkvm/qcow2/{}", distro.sha256sum),
             &format!(
                 "/dev/zvol/{}/{}",
                 details.zvol_prefix.as_ref().unwrap(),
@@ -548,9 +548,9 @@ async fn make_instance(
     debug!("making init snapshot");
     let output = Command::new("ssh")
         .args([
+            "-lroot",
             "-oStrictHostKeyChecking=accept-new",
             &details.host.clone(),
-            "sudo",
             "zfs",
             "snapshot",
             &format!(

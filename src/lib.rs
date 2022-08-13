@@ -27,6 +27,7 @@ pub mod migrate;
 pub mod models;
 pub mod namegen;
 pub mod paseto;
+pub mod scrape;
 
 pub use config::Config;
 
