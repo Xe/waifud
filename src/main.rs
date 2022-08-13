@@ -2,9 +2,9 @@
 extern crate tracing;
 
 use axum::{
-    extract::extractor_middleware,
+    middleware::from_extractor,
     routing::{delete, get, post},
-    AddExtensionLayer, Router,
+    Extension, Router,
 };
 use std::sync::Arc;
 use tower::limit::ConcurrencyLimitLayer;
@@ -30,20 +30,18 @@ async fn main() -> Result {
     let middleware = tower::ServiceBuilder::new()
         .layer(TraceLayer::new_for_http())
         .layer(ConcurrencyLimitLayer::new(64))
-        .layer(AddExtensionLayer::new(Arc::new(
-            tailscale_client::Client::new(
-                waifud::APPLICATION_NAME.to_string(),
-                cfg.tailscale.api_key.clone(),
-                cfg.tailscale.tailnet.clone(),
-            )?,
-        )))
-        .layer(AddExtensionLayer::new(Arc::new(State::new().await?)))
-        .layer(AddExtensionLayer::new(Arc::new(cfg)))
-        .layer(AddExtensionLayer::new(Arc::new(yk)));
+        .layer(Extension(Arc::new(tailscale_client::Client::new(
+            waifud::APPLICATION_NAME.to_string(),
+            cfg.tailscale.api_key.clone(),
+            cfg.tailscale.tailnet.clone(),
+        )?)))
+        .layer(Extension(Arc::new(State::new().await?)))
+        .layer(Extension(Arc::new(cfg)))
+        .layer(Extension(Arc::new(yk)));
 
     let auth_middleware = middleware
         .clone()
-        .layer(extractor_middleware::<waifud::paseto::RequireAuth>());
+        .layer(from_extractor::<waifud::paseto::RequireAuth>());
 
     let api = Router::new()
         .route("/auditlogs", get(audit::list))

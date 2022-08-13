@@ -86,18 +86,16 @@ where
     async fn from_request(req: &mut RequestParts<B>) -> Result<Self, Self::Rejection> {
         let auth_header = req
             .headers()
-            .and_then(|headers| headers.get(header::AUTHORIZATION))
+            .get(header::AUTHORIZATION)
             .and_then(|value| value.to_str().ok());
 
         let cfg: &Arc<Config> = req
             .extensions()
-            .ok_or(Error::BadMiddlewareStack)?
             .get::<Arc<Config>>()
             .ok_or(Error::BadMiddlewareStack)?;
 
         let state: &Arc<State> = req
             .extensions()
-            .ok_or(Error::BadMiddlewareStack)?
             .get::<Arc<State>>()
             .ok_or(Error::BadMiddlewareStack)?;
         let conn = state.pool.get().await?;

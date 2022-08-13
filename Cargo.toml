@@ -1,7 +1,7 @@
 [package]
 name = "waifud"
 version = "0.1.0"
-authors = [ "Xe Iaso <me@christine.website>" ]
+authors = [ "Xe Iaso <me@xeiaso.net>" ]
 edition = "2021"
 build = "src/build.rs"
 repository = "https://github.com/Xe/waifud"
@@ -14,9 +14,9 @@ lto = true
 [dependencies]
 anyhow = "1"
 async-trait = "0.1.43"
-axum = "0.4"
-axum-macros = "0.1"
-axum-extra = "0.1"
+axum = "0.5"
+axum-macros = "0.2"
+axum-extra = "0.3"
 bb8 = "0.7"
 chrono = "0.4"
 dirs = "4"
