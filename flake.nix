@@ -31,6 +31,9 @@
             installPhase = ''
               mkdir -p $out/bin
               cp $src/bin/waifuctl $out/bin
+              mkdir -p $out/share/man/man1
+              HOME=. $out/bin/waifuctl utils manpage $out/share/man/man1
+              gzip -r $out/share/man/man1
             '';
           };
         };
