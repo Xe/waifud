@@ -18,7 +18,7 @@
             buildInputs = with pkgs; [
               pkg-config
               openssl
-              sqliteInteractive
+              sqlite-interactive
               libvirt
             ];
           };
@@ -199,7 +199,7 @@
               rustPackages.clippy
               openssl
               pkg-config
-              sqliteInteractive
+              sqlite-interactive
               libvirt
               dhall
               dhall-json
