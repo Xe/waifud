@@ -48,6 +48,8 @@ bb8-rusqlite = { git = "https://github.com/pleshevskiy/bb8-rusqlite", branch = "
 virt = { git = "https://gitlab.com/libvirt/libvirt-rust.git", rev = "10456b6e59ec73e8ef418cf0a29a9bf33be8ded6" }
 
 tailscale_client = { path = "./lib/tailscale_client" }
+clap_mangen = "0.1.10"
+clap_complete = "3.2.4"
 
 [dependencies.rusqlite]
 version = "0.26"

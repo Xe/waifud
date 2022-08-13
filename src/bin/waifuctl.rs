@@ -1,8 +1,13 @@
+#![deny(missing_docs)]
+
+//! waifuctl lets you manage VM instances on waifud.
+
 #[macro_use]
 extern crate tracing;
 
 use chrono::prelude::*;
 use clap::{Args, Parser, Subcommand};
+use clap_complete::{generate, Generator, Shell};
 use ring::signature::Ed25519KeyPair;
 use serde::{Deserialize, Serialize};
 use serde_dhall::StaticType;
@@ -27,7 +32,7 @@ use waifud::{
 #[clap(propagate_version = true)]
 /// waifuctl lets you manage VM instances on waifud.
 struct Opt {
-    /// waifud host to connect to
+    /// waifud host to connect to, formatted as a http/https URL
     #[clap(short, long)]
     pub host: Option<String>,
 
@@ -37,7 +42,7 @@ struct Opt {
 
 #[derive(Deserialize, Serialize, Debug, StaticType, Clone)]
 struct Config {
-    /// waifud host to connect to
+    /// waifud host to connect to, formatted as a http/https URL
     pub host: String,
 
     /// Authentication token
@@ -117,7 +122,7 @@ enum Command {
         #[clap(short, long)]
         hard: bool,
     },
-    /// Utilities to help with managing the waifuctl project
+    /// Utilities to help with managing the waifud project
     Utils {
         #[clap(subcommand)]
         cmd: UtilsCmd,
@@ -245,6 +250,12 @@ impl Into<Distro> for CreateDistroOpts {
 
 #[derive(Subcommand, Debug)]
 enum UtilsCmd {
+    /// Generate shell completions
+    Completions {
+        #[clap(value_parser)]
+        shell: Shell,
+    },
+    /// Generate manpages to a given folder
     Manpage { path: PathBuf },
 }
 
@@ -559,7 +570,57 @@ fn config_generate_paseto_keypair() -> Result {
     Ok(())
 }
 
+fn utils_completions(shell: Shell) -> Result {
+    let cmd = clap::Command::new("waifuctl");
+    let mut cmd = Opt::augment_args(cmd);
+
+    generate(
+        shell,
+        &mut cmd,
+        "waifuctl".to_string(),
+        &mut std::io::stdout(),
+    );
+
+    Ok(())
+}
+
 fn utils_gen_manpage(path: PathBuf) -> Result {
+    let cmd = clap::Command::new("waifuctl");
+    let cmd = Opt::augment_args(cmd);
+
+    let man = clap_mangen::Man::new(cmd.clone());
+    let mut buffer: Vec<u8> = Default::default();
+    man.render(&mut buffer)?;
+    std::fs::write(path.join("waifuctl.1"), buffer)?;
+
+    for scmd in cmd.get_subcommands() {
+        let man = clap_mangen::Man::new(scmd.clone());
+        let mut buffer: Vec<u8> = Default::default();
+        man.render(&mut buffer)?;
+
+        std::fs::write(
+            path.join(&format!("waifuctl-{}.1", scmd.get_name())),
+            buffer,
+        )?;
+
+        if scmd.has_subcommands() {
+            for sscmd in scmd.get_subcommands() {
+                let man = clap_mangen::Man::new(sscmd.clone());
+                let mut buffer: Vec<u8> = Default::default();
+                man.render(&mut buffer)?;
+
+                std::fs::write(
+                    path.join(&format!(
+                        "waifuctl-{}-{}.1",
+                        scmd.get_name(),
+                        sscmd.get_name()
+                    )),
+                    buffer,
+                )?;
+            }
+        }
+    }
+
     Ok(())
 }
 
@@ -633,6 +694,7 @@ async fn main() -> Result<()> {
             ConfigCmd::SetUserdata => config_set_userdata(cfg),
         },
         Command::Utils { cmd } => match cmd {
+            UtilsCmd::Completions { shell } => utils_completions(shell),
             UtilsCmd::Manpage { path } => utils_gen_manpage(path),
         },
     } {
