@@ -75,6 +75,8 @@ async fn main() -> Result {
         .route("/api/login", post(waifud::paseto::login))
         .layer(middleware);
 
+    // tokio::spawn(waifud::scrape::cron());
+
     let addr = &"[::]:23818".parse()?;
     info!("listening on {}", addr);
     axum::Server::bind(addr)
