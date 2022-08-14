@@ -2,7 +2,6 @@ use crate::{
     api::libvirt::Machine,
     libvirt::NewInstance,
     models::{AuditEvent, Distro, Instance},
-    paseto::{LoginRequest, LoginResponse},
     Result,
 };
 use reqwest::header;
@@ -16,11 +15,11 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(base_url: String, token: String) -> Result<Self> {
+    pub fn new(base_url: String) -> Result<Self> {
         let mut headers = header::HeaderMap::new();
         headers.insert(
-            header::AUTHORIZATION,
-            header::HeaderValue::from_str(&token).unwrap(),
+            header::USER_AGENT,
+            header::HeaderValue::from_str(crate::APPLICATION_NAME)?,
         );
 
         let cli = reqwest::Client::builder()
@@ -32,23 +31,6 @@ impl Client {
             base_url: Url::parse(&base_url)?,
             cli,
         })
-    }
-
-    pub async fn login(base_url: String, otp: String) -> Result<LoginResponse> {
-        let cli = reqwest::Client::builder()
-            .connect_timeout(Duration::from_millis(500))
-            .build()?;
-
-        let mut u = Url::parse(&base_url)?;
-        u.set_path("/api/login");
-        Ok(cli
-            .post(u)
-            .json(&LoginRequest { otp })
-            .send()
-            .await?
-            .error_for_status()?
-            .json()
-            .await?)
     }
 
     pub async fn audit_logs(&self) -> Result<Vec<AuditEvent>> {

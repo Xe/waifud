@@ -7,6 +7,7 @@ use axum::{
 };
 use bb8::Pool;
 use bb8_rusqlite::RusqliteConnectionManager;
+use hyper::header::InvalidHeaderValue;
 use rusqlite::Connection;
 use std::{env, fmt, net::AddrParseError};
 
@@ -27,7 +28,6 @@ pub mod libvirt;
 pub mod migrate;
 pub mod models;
 pub mod namegen;
-pub mod paseto;
 pub mod scrape;
 pub mod tailauth;
 
@@ -103,14 +103,14 @@ pub enum Error {
     #[error("hex decode error: {0}")]
     Hex(#[from] hex::FromHexError),
 
-    #[error("key pair rejected: {0}")]
-    RingKeyPairRejected(#[from] ring::error::KeyRejected),
-
     #[error("yubikey OTP error: {0}")]
     Yubico(#[from] yubico::yubicoerror::YubicoError),
 
     #[error("tailscaled localapi error: {0}")]
     TailscaledLocalAPI(#[from] ts_localapi::Error),
+
+    #[error("invalid header value: {0}")]
+    InvalidHTTPHeader(#[from] InvalidHeaderValue),
 
     // Application errors
     #[error("host {0} doesn't exist")]

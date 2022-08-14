@@ -19,6 +19,7 @@ pub fn base(title: Option<String>, user_data: User, body: Markup) -> Markup {
                 title {(title)}
                 style {(CSS)}
                 meta name="viewport" content="width=device-width, initial-scale=1.0";
+                link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>";
             }
             body.top {
                 main {
@@ -30,6 +31,7 @@ pub fn base(title: Option<String>, user_data: User, body: Markup) -> Markup {
                             img style="width:32px;height:32px" src=(user_data.profile_pic_url);
                         }
                     }
+                    br;
                     h1 {(page_title)}
                     br;
                     (body);
@@ -37,7 +39,7 @@ pub fn base(title: Option<String>, user_data: User, body: Markup) -> Markup {
                     footer {
                         p {
                             "Powered with dokis by "
-                                a href="https://github.com/Xe/waifud" {"waifud"}
+                            a href="https://github.com/Xe/waifud" {"waifud"}
                             ". ❤️"
                         }
                     }

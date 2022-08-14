@@ -42,10 +42,6 @@ async fn main() -> Result {
 
     let admin_panel = Router::new().route("/test", get(admin::test_handler));
 
-    let auth_middleware = middleware
-        .clone()
-        .layer(from_extractor::<waifud::paseto::RequireAuth>());
-
     let api = Router::new()
         .route("/auditlogs", get(audit::list))
         .route("/distros", get(distros::list))
@@ -65,7 +61,7 @@ async fn main() -> Result {
         .route("/instances/:id", delete(instances::delete))
         .route("/instances/:id/machine", get(instances::get_machine))
         .route("/libvirt/machines", get(api::libvirt::get_machines))
-        .layer(auth_middleware);
+        .layer(middleware.clone());
 
     let app = Router::new()
         .nest("/api/v1", api)
@@ -76,7 +72,6 @@ async fn main() -> Result {
             "/api/cloudinit/:id/vendor-data",
             get(cloudinit::vendor_data),
         )
-        .route("/api/login", post(waifud::paseto::login))
         .layer(middleware);
 
     // tokio::spawn(waifud::scrape::cron());

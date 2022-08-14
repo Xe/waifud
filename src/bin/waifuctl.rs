@@ -8,13 +8,12 @@ extern crate tracing;
 use chrono::prelude::*;
 use clap::{Args, Parser, Subcommand};
 use clap_complete::{generate, Shell};
-use ring::signature::Ed25519KeyPair;
 use serde::{Deserialize, Serialize};
 use serde_dhall::StaticType;
 use std::{
     convert::TryInto,
     fs,
-    io::{self, prelude::*, stdout, Write},
+    io::{self, stdout, Write},
     path::PathBuf,
     process::exit,
     time::Duration,
@@ -45,21 +44,12 @@ struct Config {
     /// waifud host to connect to, formatted as a http/https URL
     pub host: String,
 
-    /// Authentication token
-    pub token: Option<String>,
-
     /// Default cloudconfig to preload into every VM
     pub userdata: String,
 }
 
 #[derive(Subcommand, Debug)]
 enum ConfigCmd {
-    /// Generate a new Paseto keypair
-    GeneratePasetoKeypair,
-
-    /// Make a new auth token and save it to the config file
-    Login,
-
     /// Shows current config
     Show,
 
@@ -486,31 +476,6 @@ async fn audit_list(cli: Client, json: bool) -> Result<()> {
     Ok(())
 }
 
-async fn config_login(cfg: Config) -> Result {
-    let mut cfg = cfg.clone();
-
-    print!("press your yubikey: ");
-    io::stdout().flush()?;
-    let otp = io::stdin().lock().lines().next().unwrap().unwrap();
-
-    let resp = Client::login(cfg.host.clone(), otp).await?;
-
-    cfg.token = Some(resp.token);
-
-    let mut fname = dirs::config_dir().unwrap();
-    fname.push("xeserv");
-    let _ = fs::create_dir_all(&fname);
-    fname.push("waifuctl");
-    fname.set_extension("dhall");
-    let mut fout = fs::File::create(&fname).unwrap();
-    let cfg = serde_dhall::serialize(&cfg)
-        .static_type_annotation()
-        .to_string()?;
-    fout.write_all(cfg.as_bytes())?;
-
-    Ok(())
-}
-
 fn config_show(cfg: Config) -> Result {
     println!("waifud host: {}", cfg.host);
     println!("default cloudconfig:\n\n{}", cfg.userdata);
@@ -557,15 +522,6 @@ fn config_set_userdata(cfg: Config) -> Result {
     fout.write_all(cfg.as_bytes())?;
 
     println!("wrote default cloudconfig to {}", fname.to_str().unwrap());
-
-    Ok(())
-}
-
-fn config_generate_paseto_keypair() -> Result {
-    let kp = Ed25519KeyPair::generate_pkcs8(&ring::rand::SystemRandom::new()).unwrap();
-    let key_doc: &[u8] = kp.as_ref();
-
-    println!("{}", hex::encode(key_doc));
 
     Ok(())
 }
@@ -642,7 +598,6 @@ async fn main() -> Result<()> {
                 let mut fout = fs::File::create(&fname).unwrap();
                 let cfg = serde_dhall::serialize(&Config {
                     host: "http://[::]:23818".into(),
-                    token: None,
                     userdata: include_str!("../../var/base.yaml").to_string(),
                 })
                 .static_type_annotation()
@@ -653,6 +608,11 @@ async fn main() -> Result<()> {
 
         let cfg = serde_dhall::from_file(&fname).parse::<Config>()?;
         debug!("config: {:?}", cfg);
+
+        if cfg.host.len() == 0 {
+            println!("welcome to waifud, you may want to run `waifuctl config set-host` to point waifuctl to your waifud server");
+        }
+
         cfg
     };
     if let None = opt.host {
@@ -661,14 +621,7 @@ async fn main() -> Result<()> {
 
     debug!("{:?}", opt);
 
-    if cfg.token.is_none() {
-        println!("welcome to waifud, you may want to run `waifuctl config set-host` and `waifuctl config login`");
-    }
-
-    let cli = Client::new(
-        opt.host.unwrap(),
-        cfg.token.clone().unwrap_or("".to_string()),
-    )?;
+    let cli = Client::new(opt.host.unwrap())?;
 
     if let Err(why) = match opt.cmd {
         Command::Audit { json } => audit_list(cli, json).await,
@@ -687,8 +640,6 @@ async fn main() -> Result<()> {
         Command::Start { name } => start_instance(cli, name).await,
         Command::Shutdown { name } => shutdown_instance(cli, name).await,
         Command::Config { cmd } => match cmd {
-            ConfigCmd::GeneratePasetoKeypair => config_generate_paseto_keypair(),
-            ConfigCmd::Login => config_login(cfg).await,
             ConfigCmd::Show => config_show(cfg),
             ConfigCmd::SetHost { url } => config_set_host(cfg, url),
             ConfigCmd::SetUserdata => config_set_userdata(cfg),

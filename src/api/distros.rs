@@ -1,4 +1,4 @@
-use crate::{models::Distro, Result, State};
+use crate::{models::Distro, tailauth::Tailauth, Result, State};
 use axum::{
     extract::{Extension, Path},
     Json,
@@ -10,6 +10,7 @@ use std::sync::Arc;
 pub async fn create(
     Extension(state): Extension<Arc<State>>,
     Json(distro): Json<Distro>,
+    _: Tailauth,
 ) -> Result<Json<Distro>> {
     let conn = state.pool.get().await?;
 
@@ -52,6 +53,7 @@ pub async fn update(
     Path(name): Path<String>,
     Extension(state): Extension<Arc<State>>,
     Json(distro): Json<Distro>,
+    _: Tailauth,
 ) -> Result<Json<Distro>> {
     let conn = state.pool.get().await?;
 
@@ -83,6 +85,7 @@ pub async fn update(
 pub async fn delete(
     Extension(state): Extension<Arc<State>>,
     Path(name): Path<String>,
+    _: Tailauth,
 ) -> Result<()> {
     let conn = state.pool.get().await?;
 
@@ -101,6 +104,7 @@ pub async fn delete(
 pub async fn get(
     Extension(state): Extension<Arc<State>>,
     Path(name): Path<String>,
+    _: Tailauth,
 ) -> Result<Json<Distro>> {
     let conn = state.pool.get().await?;
 
@@ -127,7 +131,10 @@ pub async fn get(
 }
 
 #[instrument(err)]
-pub async fn list(Extension(state): Extension<Arc<State>>) -> Result<Json<Vec<Distro>>> {
+pub async fn list(
+    Extension(state): Extension<Arc<State>>,
+    _: Tailauth,
+) -> Result<Json<Vec<Distro>>> {
     let conn = state.pool.get().await?;
 
     let mut stmt = conn.prepare(

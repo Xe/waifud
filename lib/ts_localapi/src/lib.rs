@@ -1,4 +1,4 @@
-use hyper::{body::Buf, Body, Client, Request};
+use hyper::{body::Buf, Body, Client, Request, StatusCode};
 use hyperlocal::{UnixClientExt, Uri};
 use serde::{Deserialize, Serialize};
 use std::net::{IpAddr, SocketAddr};
@@ -13,6 +13,9 @@ pub enum Error {
 
     #[error("json error: {0}")]
     JSON(#[from] serde_json::Error),
+
+    #[error("wanted status code {0}, but tailscaled returned status code {1}")]
+    WrongStatusCode(StatusCode, StatusCode),
 }
 
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
@@ -50,7 +53,7 @@ pub async fn whois(ip_port: SocketAddr) -> Result<WhoisResponse, Error> {
 
     let resp = client.request(req).await?;
     if !resp.status().is_success() {
-        panic!("TODO(Xe): handle {}", resp.status());
+        return Err(Error::WrongStatusCode(StatusCode::OK, resp.status()));
     }
 
     let body = hyper::body::aggregate(resp).await?;

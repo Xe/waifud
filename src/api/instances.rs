@@ -2,7 +2,9 @@ use crate::{
     api::libvirt::Machine,
     libvirt::{random_mac, NewInstance},
     models::{Distro, Instance},
-    namegen, Config, Error, State,
+    namegen,
+    tailauth::Tailauth,
+    Config, Error, State,
 };
 use axum::{
     extract::{Extension, Path},
@@ -22,6 +24,7 @@ use virt::{connect::Connect, domain::Domain};
 pub async fn reinit(
     Path(id): Path<Uuid>,
     Extension(state): Extension<Arc<State>>,
+    _: Tailauth,
 ) -> Result<(), Error> {
     let conn = state.pool.get().await?;
 
@@ -95,6 +98,7 @@ pub async fn reinit(
 pub async fn delete(
     Path(id): Path<Uuid>,
     Extension(state): Extension<Arc<State>>,
+    _: Tailauth,
 ) -> Result<(), Error> {
     let conn = state.pool.get().await?;
 
@@ -144,6 +148,7 @@ pub async fn delete(
 pub async fn get_machine(
     Path(id): Path<Uuid>,
     Extension(state): Extension<Arc<State>>,
+    _: Tailauth,
 ) -> Result<Json<Machine>, Error> {
     let conn = state.pool.get().await?;
 
@@ -161,6 +166,7 @@ pub async fn get_machine(
 pub async fn hard_reboot(
     Path(id): Path<Uuid>,
     Extension(state): Extension<Arc<State>>,
+    _: Tailauth,
 ) -> Result<(), Error> {
     let conn = state.pool.get().await?;
 
@@ -189,6 +195,7 @@ pub async fn hard_reboot(
 pub async fn shutdown(
     Path(id): Path<Uuid>,
     Extension(state): Extension<Arc<State>>,
+    _: Tailauth,
 ) -> Result<(), Error> {
     let conn = state.pool.get().await?;
 
@@ -215,6 +222,7 @@ pub async fn shutdown(
 pub async fn start(
     Path(id): Path<Uuid>,
     Extension(state): Extension<Arc<State>>,
+    _: Tailauth,
 ) -> Result<(), Error> {
     let conn = state.pool.get().await?;
 
@@ -241,6 +249,7 @@ pub async fn start(
 pub async fn reboot(
     Path(id): Path<Uuid>,
     Extension(state): Extension<Arc<State>>,
+    _: Tailauth,
 ) -> Result<(), Error> {
     let conn = state.pool.get().await?;
 
@@ -267,6 +276,7 @@ pub async fn reboot(
 pub async fn get_by_name(
     Path(name): Path<String>,
     Extension(state): Extension<Arc<State>>,
+    _: Tailauth,
 ) -> Result<Json<Instance>, Error> {
     let conn = state.pool.get().await?;
 
@@ -278,6 +288,7 @@ pub async fn get_by_name(
 pub async fn get(
     Path(id): Path<Uuid>,
     Extension(state): Extension<Arc<State>>,
+    _: Tailauth,
 ) -> Result<Json<Instance>, Error> {
     let conn = state.pool.get().await?;
 
@@ -286,7 +297,10 @@ pub async fn get(
 
 #[instrument(err)]
 #[axum_macros::debug_handler]
-pub async fn list(Extension(state): Extension<Arc<State>>) -> Result<Json<Vec<Instance>>, Error> {
+pub async fn list(
+    Extension(state): Extension<Arc<State>>,
+    _: Tailauth,
+) -> Result<Json<Vec<Instance>>, Error> {
     let conn = state.pool.get().await?;
 
     let mut result: Vec<Instance> = Vec::new();
@@ -322,6 +336,7 @@ pub async fn create(
     Json(details): Json<NewInstance>,
     Extension(state): Extension<Arc<State>>,
     Extension(config): Extension<Arc<Config>>,
+    _: Tailauth,
 ) -> Result<Json<Instance>, Error> {
     let id = Uuid::new_v4();
 
