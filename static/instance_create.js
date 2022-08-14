@@ -54,7 +54,7 @@ r(async () => {
     let cpuBox = h("input", {type: "text", placeholder: "2"});
     let hosts = [ "kos-mos", "logos", "ontos", "pneuma" ].map(host => h("option", {value: host}, t(host)));
     let host = h("select", {}, hosts);
-    let disk_size_gb = h("input", {type: "text", placeholder: "25"});
+    let disk_size_gb = h("input", {type: "text", value: "20"});
     let zvol_prefix = h("input", {type: "text", value: "rpool/local/vms"});
     let distro_options = distros.map((d) => h("option", {value: d.name}, t(d.name)));
     let distro = h("select", {id: "selectBox"}, distro_options);
