@@ -17,7 +17,16 @@ where
 
         let result = ts_localapi::whois((addr.0, 0).into()).await?;
 
-        debug!("remote user: {}", result.user_profile.login_name);
+        info!(
+            user = result.user_profile.login_name,
+            ip = addr.0.to_string(),
+            platform = result
+                .node
+                .clone()
+                .hostinfo
+                .os
+                .unwrap_or("<unknown>".to_string())
+        );
 
         Ok(Tailauth(result.user_profile, result.node))
     }
