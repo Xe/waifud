@@ -11,12 +11,11 @@ pub fn run() -> Result<()> {
     let migrations = Migrations::new(vec![
         M::up(include_str!("./base_schema.sql")),
         M::up(include_str!("./20220225-session.sql")),
+        M::up(include_str!("./20220814-no-session.sql")),
     ]);
     conn.pragma_update(None, "journal_mode", &"WAL").unwrap();
 
     migrations.to_latest(&mut conn)?;
-
-    load_distros(conn)?;
 
     Ok(())
 }
