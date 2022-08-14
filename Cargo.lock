@@ -1429,7 +1429,7 @@ checksum = "73cbba799671b762df5a175adf59ce145165747bb891505c43d09aefbbf38beb"
 [[package]]
 name = "maud"
 version = "0.23.0"
-source = "git+https://github.com/Xe/maud#28b43369a3fc2bd7165e92efe410f335ffd7faad"
+source = "git+https://github.com/Xe/maud?rev=28b43369a3fc2bd7165e92efe410f335ffd7faad#28b43369a3fc2bd7165e92efe410f335ffd7faad"
 dependencies = [
  "axum-core",
  "http",
@@ -1440,7 +1440,7 @@ dependencies = [
 [[package]]
 name = "maud_macros"
 version = "0.23.0"
-source = "git+https://github.com/Xe/maud#28b43369a3fc2bd7165e92efe410f335ffd7faad"
+source = "git+https://github.com/Xe/maud?rev=28b43369a3fc2bd7165e92efe410f335ffd7faad#28b43369a3fc2bd7165e92efe410f335ffd7faad"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",

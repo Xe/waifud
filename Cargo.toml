@@ -15,6 +15,7 @@ lto = true
 anyhow = "1"
 async-trait = "0.1.43"
 axum = "0.5"
+axum-client-ip = "0.2.0"
 axum-macros = "0.2"
 axum-extra = "0.3"
 bb8 = "0.7"
@@ -47,12 +48,11 @@ url = "2"
 yubico = "0.10"
 
 bb8-rusqlite = { git = "https://github.com/pleshevskiy/bb8-rusqlite", branch = "bump-rusqlite" }
+maud = { git = "https://github.com/Xe/maud", rev = "28b43369a3fc2bd7165e92efe410f335ffd7faad", features = ["axum-core", "axum"] }
 virt = { git = "https://gitlab.com/libvirt/libvirt-rust.git", rev = "10456b6e59ec73e8ef418cf0a29a9bf33be8ded6" }
 
 tailscale_client = { path = "./lib/tailscale_client" }
 ts_localapi = { path = "./lib/ts_localapi" }
-maud = { git = "https://github.com/Xe/maud", version = "0.23.0", features = ["axum-core", "axum"] }
-axum-client-ip = "0.2.0"
 
 [dependencies.rusqlite]
 version = "0.26"
