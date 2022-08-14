@@ -59,7 +59,22 @@ r(async () => {
     let distro_options = distros.map((d) => h("option", {value: d.name}, t(d.name)));
     let distro = h("select", {id: "selectBox"}, distro_options);
     distro.onchange = () => {
-        // if disk_size_gb < distro.minSize, assign disk size box to min size
+        let selectedDistro = null;
+        distros.forEach(d => {
+            if (d.name == distro.value) {
+                selectedDistro = d;
+            }
+        });
+
+        if (selectedDistro == null) {
+            console.log("this shouldn't happen, selected distro doesn't exist in our list??");
+            return;
+        }
+
+        let disk_size = parseInt(disk_size_gb.value, 10);
+        if (disk_size < selectedDistro.minSize) {
+            disk_size_gb.value = `${selectedDistro.minSize}`;
+        }
     };
 
     let user_data = h("textarea", {rows: 10, cols: 40}, t(user_data_template));
