@@ -1,9 +1,24 @@
+use crate::{
+    api::libvirt::Machine,
+    models::{Distro, Instance},
+    tailauth::Tailauth,
+    Result, State,
+};
+use axum::{extract::Path, Extension};
 use maud::{html, Markup, PreEscaped};
+use rusqlite::params;
+use std::sync::Arc;
 use ts_localapi::User;
-
-use crate::{tailauth::Tailauth, Result};
+use uuid::Uuid;
+use virt::{connect::Connect, domain::Domain};
 
 const CSS: PreEscaped<&'static str> = PreEscaped(include_str!("./xess.css"));
+
+fn import_js(name: &str) -> PreEscaped<String> {
+    PreEscaped(format!(
+        "<script src=\"/static/{name}\" type =\"module\"></script>"
+    ))
+}
 
 pub fn base(title: Option<String>, user_data: User, body: Markup) -> Markup {
     let page_title = title.clone().unwrap_or("waifud".to_string());
@@ -24,7 +39,11 @@ pub fn base(title: Option<String>, user_data: User, body: Markup) -> Markup {
             body.top {
                 main {
                     nav.nav {
-                        a.left href="/admin/" {"Home"}
+                        a href="/admin" {"Home"}
+                        " "
+                        a href="/admin/distros" {"Distros"}
+                        " "
+                        a href="/admin/instances" {"Instances"}
                         div.right {
                             {(user_data.display_name)}
                             " "
@@ -47,6 +66,237 @@ pub fn base(title: Option<String>, user_data: User, body: Markup) -> Markup {
             }
         }
     }
+}
+
+pub async fn instance_create(Tailauth(user, _): Tailauth) -> Markup {
+    base(
+        Some("Create instance".to_string()),
+        user,
+        html! {
+            (import_js("instance_create.js"))
+            div #root {
+                "Loading..."
+            }
+        },
+    )
+}
+
+pub async fn instance(
+    Extension(state): Extension<Arc<State>>,
+    Tailauth(user, _): Tailauth,
+    Path(id): Path<Uuid>,
+) -> Result<Markup> {
+    let conn = state.pool.get().await?;
+
+    let instance = Instance::from_uuid(&conn, id)?;
+
+    let conn = Connect::open(&format!("qemu+ssh://root@{}/system", instance.host))?;
+    let machine: Option<Machine> = Domain::lookup_by_uuid_string(&conn, &id.to_string())
+        .ok()
+        .and_then(|dom| Machine::try_from(dom).ok());
+
+    Ok(base(
+        Some(instance.name.clone()),
+        user,
+        html! {
+            (import_js("instance_detail.js"))
+            table {
+                tr {
+                    th {"Status"}
+                    td {(instance.status)}
+                }
+                tr {
+                    th {"IP Address"}
+                    td {
+                        @if let Some(m) = machine {
+                            (m.addr.unwrap_or("".to_string()))
+                        }
+                    }
+                }
+                tr {
+                    th {"Host"}
+                    td {(instance.host)}
+                }
+                tr {
+                    th {"Memory"}
+                    td {(instance.memory) " MB"}
+                }
+                tr {
+                    th {"Disk size"}
+                    td {(instance.disk_size) " GB"}
+                }
+                tr {
+                    th {"ZVol name"}
+                    td {(instance.zvol_name)}
+                }
+                tr {
+                    th {"Distro"}
+                    td {(instance.distro)}
+                }
+                tr {
+                    th {"UUID"}
+                    td #instance_id {(instance.uuid.to_string())}
+                }
+            }
+
+            h2 {"Quick Actions"}
+            div #actions {"Loading..."}
+        },
+    ))
+}
+
+pub async fn instances(
+    Extension(state): Extension<Arc<State>>,
+    Tailauth(user, _): Tailauth,
+) -> Result<Markup> {
+    let conn = state.pool.get().await?;
+
+    let mut result: Vec<Instance> = Vec::new();
+
+    let mut stmt = conn.prepare(
+        "SELECT uuid, name, host, mac_address, memory, disk_size, zvol_name, status, distro, join_tailnet FROM instances",
+    )?;
+    let instances = stmt.query_map(params![], |row| {
+        Ok(Instance {
+            uuid: row.get(0)?,
+            name: row.get(1)?,
+            host: row.get(2)?,
+            mac_address: row.get(3)?,
+            memory: row.get(4)?,
+            disk_size: row.get(5)?,
+            zvol_name: row.get(6)?,
+            status: row.get(7)?,
+            distro: row.get(8)?,
+            join_tailnet: row.get(9)?,
+        })
+    })?;
+
+    for instance in instances {
+        result.push(instance?);
+    }
+
+    Ok(base(
+        Some("Instances".to_string()),
+        user,
+        html! {
+            p{ a href="/admin/instances/create" {"Create a new instance"} }
+            table {
+                tr {
+                    th {"Name"}
+                    th {"Host"}
+                    th {"Memory"}
+                    th {"Disk"}
+                    th {"Distro"}
+                    th {"Status"}
+                }
+                @for i in result {
+                    tr {
+                        td {a href={"/admin/instances/" (i.uuid.to_string())} {(i.name)}}
+                        td {(i.host)}
+                        td {(i.memory) " MB"}
+                        td {(i.disk_size) " GB"}
+                        td {(i.distro)}
+                        td {(i.status)}
+                    }
+                }
+            }
+        },
+    ))
+}
+
+pub async fn home(
+    Extension(state): Extension<Arc<State>>,
+    Tailauth(user, _): Tailauth,
+) -> Result<Markup> {
+    let conn = state.pool.get().await?;
+
+    let mut stmt = conn.prepare(
+        "
+WITH distro_count    ( val ) AS ( SELECT COUNT(*) FROM distros )
+   , instance_count  ( val ) AS ( SELECT COUNT(*) FROM instances )
+   , instance_memory ( amt ) AS ( SELECT SUM(memory) FROM instances )
+SELECT dc.val AS distros
+     , ic.val AS instances
+     , im.amt AS ram_use
+FROM distro_count    dc
+   , instance_count  ic
+   , instance_memory im
+",
+    )?;
+
+    let (distro_count, instance_count, total_memory): (i32, i32, Option<i32>) =
+        stmt.query_row(params![], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))?;
+
+    Ok(base(
+        Some("Home".to_string()),
+        user.clone(),
+        html! {
+            p {
+                "Hello "
+                (user.login_name)
+                "! I am tracking "
+                (distro_count)
+                " distribution image"
+                @if distro_count != 1 {
+                    "s"
+                }
+                ", "
+                (instance_count)
+                " VM instance"
+                @if instance_count != 1 {
+                    "s"
+                }
+                 " that use a total of "
+                (total_memory.unwrap_or(0))
+                " megabytes of RAM."
+            }
+            p{ a href="/admin/instances/create" {"Create a new instance"} }
+        },
+    ))
+}
+
+pub async fn distro_list(
+    Extension(state): Extension<Arc<State>>,
+    Tailauth(user, _): Tailauth,
+) -> Result<Markup> {
+    let conn = state.pool.get().await?;
+
+    let mut stmt = conn.prepare(
+        "SELECT name, download_url, sha256sum, min_size, format FROM distros ORDER BY name ASC",
+    )?;
+    let iter = stmt.query_map(params![], |row| {
+        Ok(Distro {
+            name: row.get(0)?,
+            download_url: row.get(1)?,
+            sha256sum: row.get(2)?,
+            min_size: row.get(3)?,
+            format: row.get(4)?,
+        })
+    })?;
+    let mut result: Vec<Distro> = vec![];
+
+    for distro in iter {
+        result.push(distro.unwrap());
+    }
+
+    Ok(base(
+        Some("Distros".to_string()),
+        user,
+        html! {
+            table {
+                tr {
+                    th {"Name"}
+                    th {"Min. Size (gb)"}
+                }
+                @for d in result {
+                    tr {
+                        td {(d.name)}
+                        td {(d.min_size)}
+                    }
+                }
+            }
+        },
+    ))
 }
 
 pub async fn test_handler(Tailauth(user, _): Tailauth) -> Result<Markup> {

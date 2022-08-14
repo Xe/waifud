@@ -2,13 +2,13 @@
 extern crate tracing;
 
 use axum::{
-    middleware::from_extractor,
-    routing::{delete, get, post},
+    routing::{delete, get, get_service, post},
     Extension, Router,
 };
-use std::{net::SocketAddr, sync::Arc};
+use hyper::StatusCode;
+use std::{io, net::SocketAddr, sync::Arc};
 use tower::limit::ConcurrencyLimitLayer;
-use tower_http::trace::TraceLayer;
+use tower_http::{services::ServeDir, trace::TraceLayer};
 use waifud::{
     admin,
     api::{self, audit, cloudinit, distros, instances},
@@ -40,7 +40,13 @@ async fn main() -> Result {
         .layer(Extension(Arc::new(cfg)))
         .layer(Extension(Arc::new(yk)));
 
-    let admin_panel = Router::new().route("/test", get(admin::test_handler));
+    let admin_panel = Router::new()
+        .route("/", get(admin::home))
+        .route("/test", get(admin::test_handler))
+        .route("/instances", get(admin::instances))
+        .route("/instances/create", get(admin::instance_create))
+        .route("/instances/:id", get(admin::instance))
+        .route("/distros", get(admin::distro_list));
 
     let api = Router::new()
         .route("/auditlogs", get(audit::list))
@@ -71,6 +77,15 @@ async fn main() -> Result {
         .route(
             "/api/cloudinit/:id/vendor-data",
             get(cloudinit::vendor_data),
+        )
+        .nest(
+            "/static",
+            get_service(ServeDir::new("./static")).handle_error(|err: io::Error| async move {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    format!("unhandled internal server error: {}", err),
+                )
+            }),
         )
         .layer(middleware);
 

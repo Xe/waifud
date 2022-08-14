@@ -29,13 +29,13 @@ pub async fn create(
                    , min_size
                    , format
                    )
-         VALUES
-           ( ?1
-           , ?2
-           , ?3
-           , ?4
-           , ?5
-           )",
+             VALUES
+                 ( ?1
+                 , ?2
+                 , ?3
+                 , ?4
+                 , ?5
+                 )",
             params![d.name, d.download_url, d.sha256sum, d.min_size, d.format],
         )?;
     }
@@ -64,12 +64,26 @@ pub async fn update(
 
     let d = distro.clone();
     conn.execute(
-        "UPDATE distros
-         SET download_url = ?1
-           , sha256sum    = ?2
-           , min_size     = ?3
-           , format       = ?4
-         WHERE name = ?5",
+        "
+INSERT INTO
+  distros( name
+         , download_url
+         , sha256sum
+         , min_size
+         , format
+         )
+VALUES ( ?5
+       , ?1
+       , ?2
+       , ?3
+       , ?4
+       )
+ON CONFLICT DO
+  UPDATE SET download_url=?1
+           , sha256sum=?2
+           , min_size=?3
+           , format=?4
+",
         params![d.download_url, d.sha256sum, d.min_size, d.format, d.name],
     )?;
 
