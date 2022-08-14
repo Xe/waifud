@@ -20,6 +20,8 @@ axum-extra = "0.3"
 bb8 = "0.7"
 chrono = "0.4"
 clap = { version = "3", features = ["derive"] }
+clap_mangen = "0.1.10"
+clap_complete = "3.2.4"
 dirs = "4"
 edit = "0.1"
 failure = "0.1"
@@ -48,8 +50,7 @@ bb8-rusqlite = { git = "https://github.com/pleshevskiy/bb8-rusqlite", branch = "
 virt = { git = "https://gitlab.com/libvirt/libvirt-rust.git", rev = "10456b6e59ec73e8ef418cf0a29a9bf33be8ded6" }
 
 tailscale_client = { path = "./lib/tailscale_client" }
-clap_mangen = "0.1.10"
-clap_complete = "3.2.4"
+ts_localapi = { path = "./lib/ts_localapi" }
 
 [dependencies.rusqlite]
 version = "0.26"
@@ -72,7 +73,7 @@ version = "0.4"
 features = [ "full" ]
 
 [dependencies.tower-http]
-version = "0.2"
+version = "0.3"
 features = [ "full" ]
 
 [dependencies.uuid]

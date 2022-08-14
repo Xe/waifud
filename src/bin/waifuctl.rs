@@ -7,7 +7,7 @@ extern crate tracing;
 
 use chrono::prelude::*;
 use clap::{Args, Parser, Subcommand};
-use clap_complete::{generate, Generator, Shell};
+use clap_complete::{generate, Shell};
 use ring::signature::Ed25519KeyPair;
 use serde::{Deserialize, Serialize};
 use serde_dhall::StaticType;
@@ -598,7 +598,10 @@ fn utils_gen_manpage(path: PathBuf) -> Result {
         let mut buffer: Vec<u8> = Default::default();
         man.render(&mut buffer)?;
 
-        std::fs::write(path.join(&format!("waifuctl-{}.1", scmd.get_name())), buffer)?;
+        std::fs::write(
+            path.join(&format!("waifuctl-{}.1", scmd.get_name())),
+            buffer,
+        )?;
 
         if scmd.has_subcommands() {
             for sscmd in scmd.get_subcommands() {
