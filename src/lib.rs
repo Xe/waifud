@@ -19,6 +19,7 @@ pub fn establish_connection() -> Result<Connection> {
 
 pub type Result<T = (), E = Error> = std::result::Result<T, E>;
 
+pub mod admin;
 pub mod api;
 pub mod client;
 pub mod config;
@@ -28,6 +29,7 @@ pub mod models;
 pub mod namegen;
 pub mod paseto;
 pub mod scrape;
+pub mod tailauth;
 
 pub use config::Config;
 
@@ -106,6 +108,9 @@ pub enum Error {
 
     #[error("yubikey OTP error: {0}")]
     Yubico(#[from] yubico::yubicoerror::YubicoError),
+
+    #[error("tailscaled localapi error: {0}")]
+    TailscaledLocalAPI(#[from] ts_localapi::Error),
 
     // Application errors
     #[error("host {0} doesn't exist")]

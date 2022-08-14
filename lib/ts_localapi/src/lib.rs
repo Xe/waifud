@@ -1,12 +1,15 @@
-use hyper::{body::Buf, Client};
+use hyper::{body::Buf, Body, Client, Request};
 use hyperlocal::{UnixClientExt, Uri};
 use serde::{Deserialize, Serialize};
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("hyper error: {0}")]
     Hyper(#[from] hyper::Error),
+
+    #[error("http error: {0}")]
+    HTTP(#[from] hyper::http::Error),
 
     #[error("json error: {0}")]
     JSON(#[from] serde_json::Error),
@@ -21,15 +24,31 @@ pub struct WhoisResponse {
     pub user_profile: User,
 }
 
-pub async fn whois(ip: SocketAddr) -> Result<WhoisResponse, Error> {
-    let url = Uri::new(
+pub async fn whois(ip_port: SocketAddr) -> Result<WhoisResponse, Error> {
+    let ip_port = if let SocketAddr::V6(ip_port) = ip_port {
+        let ip = ip_port
+            .ip()
+            .to_ipv4()
+            .map(|ip| IpAddr::V4(ip))
+            .unwrap_or(IpAddr::V6(ip_port.ip().clone()));
+        (ip, ip_port.port()).into()
+    } else {
+        ip_port
+    };
+    let url: hyper::Uri = Uri::new(
         "/var/run/tailscale/tailscaled.sock",
-        &format!("/localapi/v0/whois?addr={ip}"),
+        &format!("/localapi/v0/whois?addr={ip_port}"),
     )
     .into();
     let client = Client::unix();
 
-    let resp = client.get(url).await?;
+    let req = Request::builder()
+        .uri(url)
+        .header("Host", "local-tailscaled.sock")
+        .body(Body::empty())
+        .unwrap();
+
+    let resp = client.request(req).await?;
     if !resp.status().is_success() {
         panic!("TODO(Xe): handle {}", resp.status());
     }
@@ -98,7 +117,7 @@ pub struct WhoisPeer {
 #[serde(rename_all = "camelCase")]
 pub struct Hostinfo {
     #[serde(rename = "OS")]
-    pub os: String,
+    pub os: Option<String>,
     #[serde(rename = "Hostname")]
     pub hostname: String,
     #[serde(rename = "RoutableIPs")]

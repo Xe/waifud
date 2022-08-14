@@ -51,6 +51,8 @@ virt = { git = "https://gitlab.com/libvirt/libvirt-rust.git", rev = "10456b6e59e
 
 tailscale_client = { path = "./lib/tailscale_client" }
 ts_localapi = { path = "./lib/ts_localapi" }
+maud = { git = "https://github.com/Xe/maud", version = "0.23.0", features = ["axum-core", "axum"] }
+axum-client-ip = "0.2.0"
 
 [dependencies.rusqlite]
 version = "0.26"

@@ -6,10 +6,11 @@ use axum::{
     routing::{delete, get, post},
     Extension, Router,
 };
-use std::sync::Arc;
+use std::{net::SocketAddr, sync::Arc};
 use tower::limit::ConcurrencyLimitLayer;
 use tower_http::trace::TraceLayer;
 use waifud::{
+    admin,
     api::{self, audit, cloudinit, distros, instances},
     Config, Result, State,
 };
@@ -39,6 +40,8 @@ async fn main() -> Result {
         .layer(Extension(Arc::new(cfg)))
         .layer(Extension(Arc::new(yk)));
 
+    let admin_panel = Router::new().route("/test", get(admin::test_handler));
+
     let auth_middleware = middleware
         .clone()
         .layer(from_extractor::<waifud::paseto::RequireAuth>());
@@ -66,6 +69,7 @@ async fn main() -> Result {
 
     let app = Router::new()
         .nest("/api/v1", api)
+        .nest("/admin", admin_panel)
         .route("/api/cloudinit/:id/meta-data", get(cloudinit::meta_data))
         .route("/api/cloudinit/:id/user-data", get(cloudinit::user_data))
         .route(
@@ -80,7 +84,7 @@ async fn main() -> Result {
     let addr = &"[::]:23818".parse()?;
     info!("listening on {}", addr);
     axum::Server::bind(addr)
-        .serve(app.into_make_service())
+        .serve(app.into_make_service_with_connect_info::<SocketAddr>())
         .await?;
 
     Ok(())
