@@ -6,7 +6,7 @@ mod xc1;
 mod xc2;
 
 lazy_static::lazy_static! {
-    static ref COMBINED_ADJ: Vec<&'static str> = {
+    pub static ref COMBINED_ADJ: Vec<&'static str> = {
         let mut adjs: Vec<&str> = vec![];
         adjs.extend(xc1::ADJECTIVES.iter());
         adjs.extend(xc2::ADJECTIVES.iter());
@@ -17,7 +17,7 @@ lazy_static::lazy_static! {
         adjs
     };
 
-    static ref COMBINED_NOUN: Vec<&'static str> = {
+    pub static ref COMBINED_NOUN: Vec<&'static str> = {
         let mut nouns: Vec<&str> = vec![];
         nouns.extend(xc1::NOUNS.iter());
         nouns.extend(xc2::NOUNS.iter());
