@@ -83,5 +83,8 @@ features = [ "serde", "v4" ]
 [build-dependencies]
 ructe = { version = "0.13" }
 
+[dev-dependencies]
+ructe = { version = "0.13" }
+
 [workspace]
 members = [ "lib/*" ]
