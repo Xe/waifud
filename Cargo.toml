@@ -31,6 +31,7 @@ hex = { version = "0.4", features = [ "serde" ] }
 hyper = "0.14"
 hyper-tls = "0.5"
 mac_address = "1"
+names = "0.14"
 rand = "0.8"
 rusqlite_migration = "1.0"
 scraper = "0.13.0"

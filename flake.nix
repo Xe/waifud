@@ -52,6 +52,7 @@
         defaultPackage = self.packages."${system}".waifuctl;
 
         apps = {
+          unique-monster = utils.lib.mkApp { drv = self.packages."${system}".unique-monster; };
           waifud = utils.lib.mkApp { drv = self.packages."${system}".waifud; };
           waifuctl =
             utils.lib.mkApp { drv = self.packages."${system}".waifuctl; };
