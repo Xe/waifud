@@ -3051,6 +3051,7 @@ dependencies = [
  "futures",
  "hex",
  "hyper",
+ "hyper-tls",
  "mac_address",
  "maud",
  "rand 0.8.5",

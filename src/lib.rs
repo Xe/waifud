@@ -79,6 +79,9 @@ pub enum Error {
     #[error("hyper error: {0}")]
     Hyper(#[from] hyper::Error),
 
+    #[error("can't convert HTTP header to string: {0}")]
+    HTTPHeaderToString(#[from] axum::http::header::ToStrError),
+
     #[error("address parse error: {0}")]
     AddrParse(#[from] AddrParseError),
 

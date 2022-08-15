@@ -5,6 +5,7 @@ use futures::future::join_all;
 use rusqlite::params;
 use tokio::time::Instant;
 
+pub mod amazon_linux;
 pub mod arch;
 pub mod rocky_linux;
 pub mod ubuntu;
@@ -17,7 +18,7 @@ pub async fn get_all() -> Result<Vec<Distro>> {
     ])
     .await;
     let rockies = join_all(vec![rocky_linux::scrape(8), rocky_linux::scrape(9)]).await;
-    let mut result: Vec<Distro> = vec![arch::scrape().await?];
+    let mut result: Vec<Distro> = vec![arch::scrape().await?, amazon_linux::scrape().await?];
 
     for distro in ubuntus {
         result.push(distro?);

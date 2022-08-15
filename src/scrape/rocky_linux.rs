@@ -1,7 +1,6 @@
 use scraper::{ElementRef, Html};
-use std::collections::HashMap;
 
-use crate::{models::Distro, Error};
+use crate::models::Distro;
 
 /// # Scraper for Rocky Linux cloud images
 ///
@@ -99,16 +98,4 @@ pub async fn scrape(version: i32) -> crate::Result<crate::models::Distro> {
         min_size: 10,
         format: "waifud://qcow2".to_string(),
     })
-}
-
-fn shuck(value: &str) -> &str {
-    let mut chars = value.chars();
-    chars.next();
-    chars.next_back();
-    chars.as_str()
-}
-
-#[test]
-fn test_shuck() {
-    assert_eq!(shuck("\"hi there\""), "hi there");
 }
