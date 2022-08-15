@@ -13,6 +13,17 @@
         naersk-lib = pkgs.callPackage naersk { };
       in rec {
         packages = {
+          unique-monster = pkgs.stdenv.mkDerivation {
+            src = self.packages."${system}".waifud;
+            pname = "unique-monster";
+            version = self.packages."${system}".waifud.version;
+            phases = "installPhase";
+            installPhase = ''
+              mkdir -p $out/bin
+              cp $src/bin/unique-monster $out/bin
+            '';
+          };
+
           waifud = naersk-lib.buildPackage {
             src = ./.;
             buildInputs = with pkgs; [

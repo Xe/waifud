@@ -1,5 +1,5 @@
 use clap::Parser;
-use names::{Generator, Name};
+use names::Name;
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
