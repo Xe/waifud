@@ -3074,6 +3074,7 @@ dependencies = [
  "maud",
  "rand 0.8.5",
  "reqwest",
+ "rotbart",
  "ructe",
  "rusqlite",
  "rusqlite_migration",

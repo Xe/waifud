@@ -50,6 +50,7 @@ bb8-rusqlite = { git = "https://github.com/pleshevskiy/bb8-rusqlite", branch = "
 maud = { git = "https://github.com/Xe/maud", rev = "28b43369a3fc2bd7165e92efe410f335ffd7faad", features = ["axum-core", "axum"] }
 virt = { git = "https://gitlab.com/libvirt/libvirt-rust.git", rev = "10456b6e59ec73e8ef418cf0a29a9bf33be8ded6" }
 
+rotbart = { path = "./lib/rotbart" }
 tailscale_client = { path = "./lib/tailscale_client" }
 ts_localapi = { path = "./lib/ts_localapi" }
 

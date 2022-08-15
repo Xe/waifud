@@ -27,7 +27,6 @@ pub mod config;
 pub mod libvirt;
 pub mod migrate;
 pub mod models;
-pub mod namegen;
 pub mod scrape;
 pub mod tailauth;
 

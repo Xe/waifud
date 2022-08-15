@@ -2,7 +2,6 @@ use crate::{
     api::libvirt::Machine,
     libvirt::{random_mac, NewInstance},
     models::{Distro, Instance},
-    namegen,
     tailauth::Tailauth,
     Config, Error, State,
 };
@@ -364,7 +363,7 @@ pub async fn create(
     )?;
 
     let details = NewInstance {
-        name: details.name.or(Some(namegen::next())),
+        name: details.name.or(rotbart::unique_monster()),
         memory_mb: details.memory_mb.or(Some(512)),
         host: details.host.clone(),
         disk_size_gb: details.disk_size_gb.or(Some(distro.min_size)),
