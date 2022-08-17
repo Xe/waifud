@@ -220,6 +220,7 @@
               dhall-json
               jq
               jo
+              deno
             ];
             DATABASE_URL = "./var/waifud.db";
             RUST_LOG = "tower_http=trace,debug";
