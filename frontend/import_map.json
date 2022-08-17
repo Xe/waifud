@@ -1,6 +1,6 @@
 {
     "imports": {
-        "xeact": "./xeact/xeact.js",
+        "xeact": "./xeact/xeact.ts",
         "xeact/jsx-runtime": "./xeact/jsx-runtime.js",
         "/": "./",
         "./": "./"

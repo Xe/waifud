@@ -1,13 +1,5 @@
 /** @jsxImportSource xeact */
 
-declare global {
-  export namespace JSX {
-    interface IntrinsicElements {
-      [elemName: string]: any;
-    }
-  }
-}
-
 import { g, r, t, u, x } from "xeact";
 
 type InstanceButtonProps = {
