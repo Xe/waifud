@@ -10,6 +10,34 @@ type InstanceButtonProps = {
   confirm?: boolean;
 };
 
+function DeleteInstanceButton(
+  { text, instance_id, message, confirm = true }: InstanceButtonProps,
+) {
+  const onclick = async () => {
+    if (confirm) {
+      const response = prompt(
+        "Type 'I don't care about the data' to continue.",
+      );
+      if (response !== "I don't care about the data") {
+        g("actions").appendChild(t("Confirmation failed."));
+        return;
+      }
+    }
+    await fetch(u(`/api/v1/instances/${instance_id}`), {
+      method: "DELETE",
+    });
+    g("actions").appendChild(t(message));
+    alert(message);
+    window.location.href = u("/admin/instances");
+  };
+  return (
+    <div>
+      <button onclick={() => onclick()}>{text}</button>
+      <br />
+    </div>
+  );
+}
+
 function InstanceButton(
   { text, instance_id, action, message, confirm = false }: InstanceButtonProps,
 ) {
@@ -69,6 +97,12 @@ function Page(instance_id: string) {
         instance_id={instance_id}
         action="start"
         message="VM Started."
+      />
+      <DeleteInstanceButton
+        text="Delete instance"
+        instance_id={instance_id}
+        action = "delete"
+        message="Instance deleted, redirecting you to instances page."
       />
     </div>
   );
