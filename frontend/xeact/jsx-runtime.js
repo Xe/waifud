@@ -1,4 +1,4 @@
-import { h } from './xeact.js';
+import { h } from './xeact.ts';
 
 /**
  * Create a DOM element, assign the properties of `data` to it, and append all `data.children`.
