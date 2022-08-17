@@ -16,7 +16,7 @@ const CSS: PreEscaped<&'static str> = PreEscaped(include_str!("./xess.css"));
 
 fn import_js(name: &str) -> PreEscaped<String> {
     PreEscaped(format!(
-        "<script src=\"/static/{name}\" type =\"module\"></script>"
+        "<script src=\"/static/js/{name}\" type =\"module\"></script>"
     ))
 }
 
