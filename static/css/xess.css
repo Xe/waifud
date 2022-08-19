@@ -1,56 +1,48 @@
 main {
-    font-family: monospace, monospace;
-    max-width: 38rem;
-    padding: 2rem;
-    margin: auto;
+  font-family: monospace, monospace;
+  max-width: 38rem;
+  padding: 2rem;
+  margin: auto;
 }
 
 @media only screen and (max-device-width: 736px) {
-    main {
-        padding: 0rem;
-    }
+  main {
+    padding: 0rem;
+  }
 }
 
 ::selection {
-    background: #d3869b;
+  background: #d3869b;
 }
 
 body {
-    background: #282828;
-    color:      #ebdbb2;
+  background: #282828;
+  color:      #ebdbb2;
 }
 
 pre {
-    background-color: #3c3836;
-    padding: 1em;
-    border: 0;
+  background-color: #3c3836;
+  padding: 1em;
+  border: 0;
 }
 
 a, a:active, a:visited {
-    color: #b16286;
-    background-color: #1d2021;
+  color: #b16286;
+  background-color: #1d2021;
 }
 
 h1, h2, h3, h4, h5 {
-    margin-bottom: .1rem;
+  margin-bottom: .1rem;
 }
 
 blockquote {
-    border-left: 1px solid #bdae93;
-    margin: 0.5em 10px;
-    padding: 0.5em 10px;
+  border-left: 1px solid #bdae93;
+  margin: 0.5em 10px;
+  padding: 0.5em 10px;
 }
 
 footer {
-    align-content: center;
-}
-
-.left {
-    float: left;
-}
-
-.right {
-    float: right;
+  align: center;
 }
 
 @media (prefers-color-scheme: light) {

@@ -12,7 +12,15 @@ use ts_localapi::User;
 use uuid::Uuid;
 use virt::{connect::Connect, domain::Domain};
 
-const CSS: PreEscaped<&'static str> = PreEscaped(include_str!("./xess.css"));
+const CSS: PreEscaped<&'static str> = PreEscaped(
+    ".left {
+    float: left;
+}
+
+.right {
+    float: right;
+}",
+);
 
 fn import_js(name: &str) -> PreEscaped<String> {
     PreEscaped(format!(
@@ -32,9 +40,10 @@ pub fn base(title: Option<String>, user_data: User, body: Markup) -> Markup {
             head {
                 meta charset="utf-8";
                 title {(title)}
-                style {(CSS)}
                 meta name="viewport" content="width=device-width, initial-scale=1.0";
                 link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>";
+                link rel="stylesheet" type="text/css" href="/static/css/xess.css";
+                style {(CSS)}
             }
             body.top {
                 main {

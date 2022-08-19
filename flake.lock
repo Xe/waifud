@@ -41,7 +41,8 @@
       "inputs": {
         "naersk": "naersk",
         "nixpkgs": "nixpkgs",
-        "utils": "utils"
+        "utils": "utils",
+        "xess": "xess"
       }
     },
     "utils": {
@@ -56,6 +57,29 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "xess": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "utils": [
+          "utils"
+        ]
+      },
+      "locked": {
+        "lastModified": 1640540322,
+        "narHash": "sha256-II4raADUWKTLDAALyJSToAgL8FB1ADbRHqEr/b3JeIc=",
+        "owner": "Xe",
+        "repo": "Xess",
+        "rev": "5fabc96de6487a721235c4bdf18214519d9e6201",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Xe",
+        "repo": "Xess",
         "type": "github"
       }
     }

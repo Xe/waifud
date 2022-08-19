@@ -4,9 +4,14 @@
     naersk.inputs.nixpkgs.follows = "nixpkgs";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     utils.url = "github:numtide/flake-utils";
+    xess = {
+      url = "github:Xe/Xess";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.utils.follows = "utils";
+    };
   };
 
-  outputs = { self, nixpkgs, utils, naersk }:
+  outputs = { self, nixpkgs, utils, naersk, xess }:
     utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
@@ -42,7 +47,7 @@
             version = self.packages."${system}".waifud-bin.version;
             phases = "installPhase";
             installPhase = ''
-              mkdir -p $out/static/js
+              mkdir -p $out/static/{css,js}
               mkdir -p .deno
               export HOME=./.deno
 
@@ -51,6 +56,8 @@
 
               uglifyjs ./instance_create.js -c -m > $out/static/js/instance_create.js
               uglifyjs ./instance_detail.js -c -m > $out/static/js/instance_detail.js
+
+              ln -s ${xess.defaultPackage."${system}"}/static/css/xess.css $out/static/css/xess.css
             '';
           };
 
