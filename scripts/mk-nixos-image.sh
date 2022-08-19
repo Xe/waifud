@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#! nix-shell -i bash -p nixos-generators -p qemu
+#! nix-shell -i bash -p nixos-generators -p qemu -p rsync
 
 set -ex
 

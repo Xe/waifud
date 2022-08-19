@@ -19,6 +19,7 @@
 
   systemd.services.cloud-init.requires = lib.mkForce [ "network.target" ];
 
+  services.tailscale.enable = true;
   services.openssh.enable = true;
 
   services.cloud-init = {

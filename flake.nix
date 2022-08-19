@@ -16,7 +16,7 @@
           unique-monster = pkgs.stdenv.mkDerivation {
             src = self.packages."${system}".waifud;
             pname = "unique-monster";
-            version = self.packages."${system}".waifud.version;
+            version = self.packages."${system}".waifud-bin.version;
             phases = "installPhase";
             installPhase = ''
               mkdir -p $out/bin
@@ -24,7 +24,8 @@
             '';
           };
 
-          waifud = naersk-lib.buildPackage {
+          waifud-bin = naersk-lib.buildPackage {
+            pname = "waifud-bin";
             src = ./.;
             buildInputs = with pkgs; [
               pkg-config
@@ -34,10 +35,37 @@
             ];
           };
 
+          waifud-frontend = pkgs.stdenv.mkDerivation {
+            src = ./frontend;
+            buildInputs = with pkgs; [ deno nodePackages.uglify-js ];
+            pname = "waifud-frontend";
+            version = self.packages."${system}".waifud-bin.version;
+            phases = "installPhase";
+            installPhase = ''
+              mkdir -p $out/static/js
+              mkdir -p .deno
+              export HOME=./.deno
+
+              deno bundle --config $src/deno.json $src/instance_create.tsx ./instance_create.js
+              deno bundle --config $src/deno.json $src/instance_detail.tsx ./instance_detail.js
+
+              uglifyjs ./instance_create.js -c -m > $out/static/js/instance_create.js
+              uglifyjs ./instance_detail.js -c -m > $out/static/js/instance_detail.js
+            '';
+          };
+
+          waifud = pkgs.symlinkJoin {
+            name = "waifud-${self.packages."${system}".waifud-bin.version}";
+            paths = with self.packages."${system}"; [
+              waifud-bin
+              waifud-frontend
+            ];
+          };
+
           waifuctl = pkgs.stdenv.mkDerivation {
             src = self.packages."${system}".waifud;
             pname = "waifuctl";
-            version = self.packages."${system}".waifud.version;
+            version = self.packages."${system}".waifud-bin.version;
             phases = "installPhase";
             installPhase = ''
               mkdir -p $out/bin
@@ -52,7 +80,8 @@
         defaultPackage = self.packages."${system}".waifuctl;
 
         apps = {
-          unique-monster = utils.lib.mkApp { drv = self.packages."${system}".unique-monster; };
+          unique-monster =
+            utils.lib.mkApp { drv = self.packages."${system}".unique-monster; };
           waifud = utils.lib.mkApp { drv = self.packages."${system}".waifud; };
           waifuctl =
             utils.lib.mkApp { drv = self.packages."${system}".waifuctl; };
@@ -126,18 +155,14 @@
                       RUST_LOG = "tower_http=debug,waifud=debug,info";
                       SSH_AUTH_SOCK = "/var/lib/waifud/agent.sock";
                     };
-                    unitConfig.ConditionPathExists =
-                      "/var/lib/waifud/config.dhall";
                     serviceConfig = {
                       User = "waifud";
                       Group = "waifud";
                       Restart = "always";
-                      WorkingDirectory = "/var/lib/waifud";
+                      WorkingDirectory = "${self.packages."${system}".waifud}";
                       RestartSec = "30s";
-                      ExecStartPre =
-                        "ln --symbolic --force ${cfgDhall} ./config.dhall";
                       ExecStart =
-                        "${self.packages."${system}".waifud}/bin/waifud";
+                        "${self.packages."${system}".waifud}/bin/waifud --config ${cfgDhall}";
                     };
                   };
                 };
