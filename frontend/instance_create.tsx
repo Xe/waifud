@@ -1,6 +1,6 @@
 /** @jsxImportSource xeact */
 
-import { g, r, t, u, x } from "xeact";
+import { u } from "xeact";
 
 type Distro = {
   name: string;
@@ -194,10 +194,3 @@ export const Page = async () => {
     </div>
   );
 };
-
-r(async () => {
-  let root = g("root");
-  const app = await Page();
-  x(root);
-  root.appendChild(app);
-});

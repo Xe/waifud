@@ -64,7 +64,8 @@ function InstanceButton(
   );
 }
 
-function Page(instance_id: string) {
+export async function Page() {
+  const instance_id = g("instance_id").innerText;
   return (
     <div>
       <InstanceButton
@@ -108,11 +109,9 @@ function Page(instance_id: string) {
   );
 }
 
-r(() => {
-  let root = g("actions");
-  let instance_id = g("instance_id").innerText;
-
-  let app = Page(instance_id);
-  x(root);
-  root.appendChild(app);
-});
+/* r(async () => {
+ *   const root = g("app");
+ *   const app = await Page();
+ *   x(root);
+ *   root.appendChild(app);
+ * }); */

@@ -14,7 +14,24 @@ use virt::{connect::Connect, domain::Domain};
 
 fn import_js(name: &str) -> PreEscaped<String> {
     PreEscaped(format!(
-        "<script src=\"/static/js/{name}\" type =\"module\"></script>"
+        "<script type =\"module\">
+import {{ Page }} from \"/static/js/{name}\";
+
+const g = (name) => document.getElementById(name);
+const r = (callback) => window.addEventListener('DOMContentLoaded', callback);
+const x = (elem) => {{
+    while (elem.lastChild) {{
+        elem.removeChild(elem.lastChild);
+    }}
+}};
+
+r(async () => {{
+  const page = await Page();
+  const root = g(\"app\");
+  x(root);
+  root.appendChild(page);
+}});
+</script>"
     ))
 }
 
@@ -175,7 +192,7 @@ pub async fn instance(
             }
 
             h2 {"Quick Actions"}
-            div #actions {"Loading..."}
+            div #app {"Loading..."}
         },
     ))
 }
