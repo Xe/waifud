@@ -14,11 +14,11 @@ use virt::{connect::Connect, domain::Domain};
 
 fn import_js(name: &str) -> PreEscaped<String> {
     PreEscaped(format!(
-        "<script type =\"module\">
-import {{ Page }} from \"/static/js/{name}\";
+        r#"<script type ="module">
+import {{ Page }} from "/static/js/{name}";
 
 const g = (name) => document.getElementById(name);
-const r = (callback) => window.addEventListener('DOMContentLoaded', callback);
+const r = (callback) => window.addEventListener("DOMContentLoaded", callback);
 const x = (elem) => {{
     while (elem.lastChild) {{
         elem.removeChild(elem.lastChild);
@@ -27,11 +27,11 @@ const x = (elem) => {{
 
 r(async () => {{
   const page = await Page();
-  const root = g(\"app\");
+  const root = g("app");
   x(root);
   root.appendChild(page);
 }});
-</script>"
+</script>"#
     ))
 }
 

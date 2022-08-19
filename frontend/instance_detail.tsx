@@ -108,10 +108,3 @@ export async function Page() {
     </div>
   );
 }
-
-/* r(async () => {
- *   const root = g("app");
- *   const app = await Page();
- *   x(root);
- *   root.appendChild(app);
- * }); */
