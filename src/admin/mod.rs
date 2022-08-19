@@ -12,27 +12,60 @@ use ts_localapi::User;
 use uuid::Uuid;
 use virt::{connect::Connect, domain::Domain};
 
-const CSS: PreEscaped<&'static str> = PreEscaped(
-    ".left {
-    float: left;
-}
-
-.right {
-    float: right;
-}",
-);
-
 fn import_js(name: &str) -> PreEscaped<String> {
     PreEscaped(format!(
         "<script src=\"/static/js/{name}\" type =\"module\"></script>"
     ))
 }
 
-pub fn base(title: Option<String>, user_data: User, body: Markup) -> Markup {
+pub fn base(
+    title: Option<String>,
+    crumbs: Option<&[(&str, Option<&str>)]>,
+    user_data: User,
+    body: Markup,
+) -> Markup {
     let page_title = title.clone().unwrap_or("waifud".to_string());
     let title = title
         .map(|s| format!("{s} - waifud"))
         .unwrap_or("waifud".to_string());
+
+    let crumbs = if let Some(crumbs) = crumbs {
+        html! {
+            nav.breadcrumb.nav {
+                div.right {
+                    {(user_data.display_name)}
+                    " "
+                        img style="width:32px;height:32px" src=(user_data.profile_pic_url);
+                }
+                ul {
+                    li { a href="/admin" { "waifud" } }
+                    @for (name, link) in crumbs {
+                        li {
+                            @match link {
+                                Some(link) =>                                     a href=(link) {(name)},
+                                None => span aria-current="page" {(name)},
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        html! {
+            nav.nav {
+                div.right {
+                    {(user_data.display_name)}
+                    " "
+                    img style="width:32px;height:32px" src=(user_data.profile_pic_url);
+                }
+                a href="/admin" {"waifud"}
+                " "
+                a href="/admin/distros" {"Distros"}
+                " "
+                a href="/admin/instances" {"Instances"}
+            }
+        }
+    };
 
     html! {
         (maud::DOCTYPE)
@@ -43,22 +76,10 @@ pub fn base(title: Option<String>, user_data: User, body: Markup) -> Markup {
                 meta name="viewport" content="width=device-width, initial-scale=1.0";
                 link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>";
                 link rel="stylesheet" type="text/css" href="/static/css/xess.css";
-                style {(CSS)}
             }
             body.top {
                 main {
-                    nav.nav {
-                        a href="/admin" {"Home"}
-                        " "
-                        a href="/admin/distros" {"Distros"}
-                        " "
-                        a href="/admin/instances" {"Instances"}
-                        div.right {
-                            {(user_data.display_name)}
-                            " "
-                            img style="width:32px;height:32px" src=(user_data.profile_pic_url);
-                        }
-                    }
+                    (crumbs)
                     br;
                     h1 {(page_title)}
                     br;
@@ -80,6 +101,7 @@ pub fn base(title: Option<String>, user_data: User, body: Markup) -> Markup {
 pub async fn instance_create(Tailauth(user, _): Tailauth) -> Markup {
     base(
         Some("Create instance".to_string()),
+        Some(&[("Instances", Some("/admin/instances")), ("Create", None)]),
         user,
         html! {
             (import_js("instance_create.js"))
@@ -106,6 +128,10 @@ pub async fn instance(
 
     Ok(base(
         Some(instance.name.clone()),
+        Some(&[
+            ("Instances", Some("/admin/instances")),
+            (&instance.name, None),
+        ]),
         user,
         html! {
             (import_js("instance_detail.js"))
@@ -186,6 +212,7 @@ pub async fn instances(
 
     Ok(base(
         Some("Instances".to_string()),
+        Some(&[("Instances", None)]),
         user,
         html! {
             p{ a href="/admin/instances/create" {"Create a new instance"} }
@@ -238,6 +265,7 @@ FROM distro_count    dc
 
     Ok(base(
         Some("Home".to_string()),
+        None,
         user.clone(),
         html! {
             p {
@@ -290,6 +318,7 @@ pub async fn distro_list(
 
     Ok(base(
         Some("Distros".to_string()),
+        Some(&[("Distros", None)]),
         user,
         html! {
             table {
@@ -311,6 +340,7 @@ pub async fn distro_list(
 pub async fn test_handler(Tailauth(user, _): Tailauth) -> Result<Markup> {
     Ok(base(
         Some("Test Page lol".to_string()),
+        None,
         user,
         html! {
             p {"I'm baby tonx narwhal ennui crucifix taiyaki yr farm-to-table lomo locavore chillwave next level. Af palo santo bicycle rights try-hard gentrify jianbing viral heirloom actually sartorial fashion axe pickled artisan selvage cred. Celiac hammock sriracha yes plz, fit migas semiotics bruh shabby chic gluten-free chambray portland pug. Vice activated charcoal cornhole messenger bag enamel pin, put a bird on it blog ascot kale chips green juice sartorial twee retro. Try-hard hashtag umami leggings tote bag chillwave."}

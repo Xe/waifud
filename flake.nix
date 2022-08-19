@@ -42,7 +42,7 @@
 
           waifud-frontend = pkgs.stdenv.mkDerivation {
             src = ./frontend;
-            buildInputs = with pkgs; [ deno nodePackages.uglify-js ];
+            buildInputs = with pkgs; [ deno nodePackages.uglify-js nodePackages.clean-css-cli ];
             pname = "waifud-frontend";
             version = self.packages."${system}".waifud-bin.version;
             phases = "installPhase";
@@ -57,7 +57,7 @@
               uglifyjs ./instance_create.js -c -m > $out/static/js/instance_create.js
               uglifyjs ./instance_detail.js -c -m > $out/static/js/instance_detail.js
 
-              ln -s ${xess.defaultPackage."${system}"}/static/css/xess.css $out/static/css/xess.css
+              cleancss -o $out/static/xess.css $src/css/src/xess.css $src/css/src/admin.css
             '';
           };
 

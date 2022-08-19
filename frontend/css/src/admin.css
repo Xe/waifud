@@ -1,0 +1,25 @@
+.breadcrumb {
+    padding: 0 .5rem;
+}
+
+.breadcrumb ul {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.breadcrumb li:not(:last-child)::after {
+    display: inline-block;
+    margin: 0 .25rem;
+    content: "/";
+}
+
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
+}
