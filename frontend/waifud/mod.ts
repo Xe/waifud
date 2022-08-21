@@ -40,6 +40,40 @@ export const getDistros = async (): Promise<Distro[]> => {
     return result;
 };
 
+export type AuditLog = {
+    id: number;
+    ts: number;
+    kind: string;
+    op: string;
+    data: any;
+    uuid?: string;
+    name?: string;
+};
+
+export const getAuditLogs = async (): Promise<AuditLog[]> => {
+    const resp = await fetch(u("/api/v1/auditlogs"));
+    if (resp.status !== 200) {
+        const body = await resp.text();
+        throw new Error("wrong status code: " + resp.status + "\n\n" + body);
+    }
+
+    const result: AuditLog[] = await resp.json();
+
+    return result;
+};
+
+export const getAuditLogsForInstance = async (id: string): Promise<AuditLog[]> => {
+    const resp = await fetch(u(`/api/v1/auditlogs/instance/${id}`));
+    if (resp.status !== 200) {
+        const body = await resp.text();
+        throw new Error("wrong status code: " + resp.status + "\n\n" + body);
+    }
+
+    const result: AuditLog[] = await resp.json();
+
+    return result;
+};
+
 export type NewInstance = {
     name?: string;
     memory_mb?: number;

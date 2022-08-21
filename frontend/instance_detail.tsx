@@ -1,8 +1,13 @@
 /** @jsxImportSource xeact */
 
+export function Fragment({ children }: { children: any[] }): any[] {
+  return children;
+}
+
 import { g, t, u } from "xeact";
 import {
   deleteInstance,
+  getAuditLogsForInstance,
   hardRebootInstance,
   rebootInstance,
   reinitInstance,
@@ -86,6 +91,19 @@ function InstanceButton(
 
 export async function Page() {
   const instance_id = g("instance_id").innerText;
+  const auditLogs = (await getAuditLogsForInstance(instance_id)).map((al) => (
+    <tr>
+      <td>{new Date(al.ts * 1000).toLocaleString()}</td>
+      <td>{al.op}</td>
+    </tr>
+  ));
+  auditLogs.unshift(
+    <tr>
+      <th>Time</th>
+      <th>Operation</th>
+    </tr>,
+  );
+
   return (
     <div>
       <InstanceButton
@@ -125,6 +143,12 @@ export async function Page() {
         action="delete"
         message="Instance deleted, redirecting you to instances page."
       />
+      <div>
+        <h3>Audit Logs</h3>
+        <table>
+          {auditLogs}
+        </table>
+      </div>
       <div id="messages">
         <h3>Messages</h3>
       </div>

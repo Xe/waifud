@@ -51,6 +51,7 @@ async fn main() -> Result {
 
     let api = Router::new()
         .route("/auditlogs", get(audit::list))
+        .route("/auditlogs/instance/:id", get(audit::list_for_instance))
         .route("/distros", get(distros::list))
         .route("/distros", post(distros::create))
         .route("/distros/:name", post(distros::update))

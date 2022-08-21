@@ -129,6 +129,31 @@ pub struct AuditEvent {
 }
 
 impl AuditEvent {
+    pub fn get_for_instance(
+        uuid: Uuid,
+        conn: &PooledConnection<'_, RusqliteConnectionManager>,
+    ) -> Result<Vec<AuditEvent>> {
+        let mut stmt =
+            conn.prepare("SELECT id, ts, kind, op, data, uuid, name from audit_logs where uuid=? and kind='instance'")?;
+
+        let vals: Vec<AuditEvent> = stmt
+            .query_map(params![uuid.to_string()], |row| {
+                Ok(AuditEvent {
+                    id: row.get(0)?,
+                    ts: row.get(1)?,
+                    kind: row.get(2)?,
+                    op: row.get(3)?,
+                    data: row.get(4)?,
+                    uuid: row.get(5)?,
+                    name: row.get(6)?,
+                })
+            })?
+            .into_iter()
+            .map(Result::unwrap)
+            .collect();
+        Ok(vals)
+    }
+
     pub fn get_all(
         conn: &PooledConnection<'_, RusqliteConnectionManager>,
     ) -> Result<Vec<AuditEvent>> {
