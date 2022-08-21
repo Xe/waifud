@@ -30,6 +30,7 @@ pub struct Key {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct KeyInfo {
     pub id: String,
+    #[serde(skip_serializing)]
     pub key: Option<String>,
     pub created: DateTime<Utc>,
     pub expires: DateTime<Utc>,
