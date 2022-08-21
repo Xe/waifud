@@ -122,7 +122,7 @@ pub async fn instance_create(Tailauth(user, _): Tailauth) -> Markup {
         user,
         html! {
             (import_js("instance_create.js"))
-            div #root {
+            div #app {
                 "Loading..."
             }
         },
