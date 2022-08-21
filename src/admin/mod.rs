@@ -2,9 +2,9 @@ use crate::{
     api::libvirt::Machine,
     models::{Distro, Instance},
     tailauth::Tailauth,
-    Result, State,
+    Config, Result, State,
 };
-use axum::{extract::Path, Extension};
+use axum::{extract::Path, Extension, Json};
 use maud::{html, Markup, PreEscaped};
 use rusqlite::params;
 use std::sync::Arc;
@@ -33,6 +33,10 @@ r(async () => {{
 }});
 </script>"#
     ))
+}
+
+pub async fn config(Extension(config): Extension<Arc<Config>>, _: Tailauth) -> Json<Config> {
+    Json((*config).clone())
 }
 
 pub fn base(

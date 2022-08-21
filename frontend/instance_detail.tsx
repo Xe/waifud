@@ -1,6 +1,14 @@
 /** @jsxImportSource xeact */
 
-import { g, r, t, u, x } from "xeact";
+import { g, t, u } from "xeact";
+import {
+  deleteInstance,
+  hardRebootInstance,
+  rebootInstance,
+  reinitInstance,
+  shutdownInstance,
+  startInstance,
+} from "./waifud/mod.ts";
 
 type InstanceButtonProps = {
   text: string;
@@ -19,14 +27,12 @@ function DeleteInstanceButton(
         "Type 'I don't care about the data' to continue.",
       );
       if (response !== "I don't care about the data") {
-        g("actions").appendChild(t("Confirmation failed."));
+        g("messages").appendChild(t("Confirmation failed."));
         return;
       }
     }
-    await fetch(u(`/api/v1/instances/${instance_id}`), {
-      method: "DELETE",
-    });
-    g("actions").appendChild(t(message));
+    await deleteInstance(instance_id);
+    g("messages").appendChild(t(message));
     alert(message);
     window.location.href = u("/admin/instances");
   };
@@ -47,14 +53,28 @@ function InstanceButton(
         "Type 'I don't care about the data' to continue.",
       );
       if (response !== "I don't care about the data") {
-        g("actions").appendChild(t("Confirmation failed."));
+        g("messages").appendChild(t("Confirmation failed."));
         return;
       }
     }
-    await fetch(u(`/api/v1/instances/${instance_id}/${action}`), {
-      method: "POST",
-    });
-    g("actions").appendChild(t(message));
+    switch (action) {
+      case "reboot":
+        await rebootInstance(instance_id);
+        break;
+      case "hardreboot":
+        await hardRebootInstance(instance_id);
+        break;
+      case "reinit":
+        await reinitInstance(instance_id);
+        break;
+      case "shutdown":
+        await shutdownInstance(instance_id);
+        break;
+      case "start":
+        await startInstance(instance_id);
+        break;
+    }
+    g("messages").appendChild(t(message));
   };
   return (
     <div>
@@ -102,9 +122,12 @@ export async function Page() {
       <DeleteInstanceButton
         text="Delete instance"
         instance_id={instance_id}
-        action = "delete"
+        action="delete"
         message="Instance deleted, redirecting you to instances page."
       />
+      <div id="messages">
+        <h3>Messages</h3>
+      </div>
     </div>
   );
 }

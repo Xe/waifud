@@ -13,7 +13,9 @@ pub struct Config {
     pub rpool_base: String,
     #[serde(rename = "qemuPath")]
     pub qemu_path: String,
+    #[serde(skip_serializing)]
     pub tailscale: Tailscale,
+    #[serde(skip_serializing)]
     pub yubikey: Yubikey,
 }
 

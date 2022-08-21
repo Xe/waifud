@@ -42,6 +42,7 @@ async fn main() -> Result {
 
     let admin_panel = Router::new()
         .route("/", get(admin::home))
+        .route("/api/config", get(admin::config))
         .route("/test", get(admin::test_handler))
         .route("/instances", get(admin::instances))
         .route("/instances/create", get(admin::instance_create))
