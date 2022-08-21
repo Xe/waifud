@@ -1,1 +1,4 @@
 *.db*
+*.pubkey
+*.privkey
+isekaid

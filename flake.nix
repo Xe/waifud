@@ -237,6 +237,7 @@
         devShell = with pkgs;
           mkShell {
             buildInputs = [
+              # rust
               cargo
               cargo-watch
               rustc
@@ -244,15 +245,28 @@
               rust-analyzer
               pre-commit
               rustPackages.clippy
+
+              # system libraries
               openssl
               pkg-config
               sqlite-interactive
               libvirt
+              wireguard-tools
+
+              # config
               dhall
               dhall-json
               jq
               jo
+
+              # frontend
               deno
+
+              # go
+              go
+              gotools
+              go-tools
+              gopls
             ];
             DATABASE_URL = "./var/waifud.db";
             RUST_LOG = "tower_http=trace,debug";
