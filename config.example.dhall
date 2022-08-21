@@ -18,16 +18,18 @@ let Config =
           , hosts : List Text
           , bindHost : Text
           , port : Natural
-          , pasetoKeypair : Text
+          , rpoolBase : Text
+          , qemuPath : Text
           , tailscale : Tailscale.Type
           , yubikey : Yubikey.Type
           }
       , default =
-        { baseURL = "http://192.168.122.1:23818"
+        { baseURL = "http://100.100.100.100:23818"
         , hosts = [ "vmhost1", "vmhost2" ]
         , bindHost = "::"
         , port = 23818
-        , pasetoKeypair = env:PASETO_KEYPAIR ? ""
+        , rpoolBase = "rpool/local/vms"
+        , qemuPath = "/run/libvirt/nix-emulators/qemu-system-x86_64"
         , tailscale = Tailscale::{=}
         , yubikey = Yubikey::{=}
         }

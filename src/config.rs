@@ -9,9 +9,11 @@ pub struct Config {
     #[serde(rename = "bindHost")]
     pub bind_host: IpAddr,
     pub port: u16,
+    #[serde(rename = "rpoolBase")]
+    pub rpool_base: String,
+    #[serde(rename = "qemuPath")]
+    pub qemu_path: String,
     pub tailscale: Tailscale,
-    #[serde(rename = "pasetoKeypair")]
-    pub paseto_keypair: String,
     pub yubikey: Yubikey,
 }
 

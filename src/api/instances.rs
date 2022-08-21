@@ -593,6 +593,7 @@ async fn make_instance(
         details.memory_mb.unwrap() * 1024,
         details.cpus.unwrap(),
         format!("{}/api/cloudinit/{}/", config.clone().base_url, id),
+        config.qemu_path.clone(),
     )?;
 
     let buf = String::from_utf8(buf).unwrap();
