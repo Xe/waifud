@@ -1,9 +1,10 @@
 [package]
 name = "rotbart"
 version = "0.1.0"
-authors = [ "Xe Iaso <me@xeiaso.net>" ]
 edition = "2021"
+authors = [ "Xe Iaso <me@xeiaso.net>" ]
 repository = "https://github.com/Xe/waifud"
+license = "mit"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

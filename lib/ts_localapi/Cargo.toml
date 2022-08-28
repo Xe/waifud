@@ -2,6 +2,9 @@
 name = "ts_localapi"
 version = "0.1.0"
 edition = "2021"
+authors = [ "Xe Iaso <me@xeiaso.net>" ]
+repository = "https://github.com/Xe/waifud"
+license = "mit"
 
 [dependencies]
 hyper = "0.14"
