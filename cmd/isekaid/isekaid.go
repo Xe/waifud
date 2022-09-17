@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -50,6 +51,8 @@ func main() {
 		cancel()
 	}()
 
+	go streamSyslog(ctx, "dnsmasq")
+
 	if err := establishMetadataInterface(); err != nil {
 		log.Fatal(err)
 	}
@@ -78,6 +81,12 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
+	mux.HandleFunc("/debug/dumpip2mac", func(w http.ResponseWriter, r *http.Request) {
+		ip2macLock.RLock()
+		defer ip2macLock.RUnlock()
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(ip2mac)
+	})
 	mux.HandleFunc("/instance/", func(w http.ResponseWriter, r *http.Request) {
 		sp := strings.Split(r.URL.Path, "/")
 		if len(sp) != 4 {
@@ -86,7 +95,19 @@ func main() {
 		}
 		id := sp[2]
 		key := sp[3]
-		log.Printf("id: %s, key: %s", id, key)
+		remoteAddr, _, _ := net.SplitHostPort(r.RemoteAddr)
+		log.Printf("id: %s, key: %s, remoteAddr: %s", id, key, remoteAddr)
+
+		ip2macLock.RLock()
+		macAddr, ok := ip2mac[remoteAddr]
+		ip2macLock.RUnlock()
+
+		if !ok {
+			log.Printf("can't find address in ip2mac mapping: %s", remoteAddr)
+		}
+
+		// TODO query waifud for the instance metadata
+		_ = macAddr
 
 		uid := uuid.Parse(id)
 		if uid == nil {

@@ -592,7 +592,7 @@ async fn make_instance(
         details.sata.unwrap(),
         details.memory_mb.unwrap() * 1024,
         details.cpus.unwrap(),
-        format!("{}/api/cloudinit/{}/", config.clone().base_url, id),
+        format!("http://169.254.169.254/instance/{}/", id),
         config.qemu_path.clone(),
     )?;
 

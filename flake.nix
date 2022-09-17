@@ -252,6 +252,7 @@
               sqlite-interactive
               libvirt
               wireguard-tools
+              ipset
 
               # config
               dhall
