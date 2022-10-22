@@ -28,8 +28,8 @@ import (
 var (
 	waifudURL         = flag.String("waifud-url", "http://100.78.40.86:23818", "waifud base URL")
 	wgPort            = flag.Int("wireguard-sever-port", 28139, "what port to have the kernel listen on wireguard")
-	wgHostAddr        = flag.String("wireguard-host-addr", "169.254.169.253/30", "what IP range to have for the metadata service")
-	wgGuestAddr       = flag.String("wireguard-guest-addr", "169.254.169.254", "the IP address for the metadata service")
+	wgHostAddr        = flag.String("wireguard-host-addr", "fc00::da10/112", "what IP range to have for the metadata service")
+	wgGuestAddr       = flag.String("wireguard-guest-addr", "fc00::da1a", "the IP address for the metadata service")
 	wgInterfaceName   = flag.String("wireguard-interface-name", "waifud-metadata", "the wireguard interface for the metadata service")
 	wgHostPrivateKey  = flag.String("wireguard-host-private-key", "./var/waifud-host.privkey", "wireguard host private key path (b64)")
 	wgHostPubkey      = flag.String("wireguard-host-public-key", "./var/waifud-host.pubkey", "wireguard host public key path (b64)")
