@@ -23,7 +23,7 @@ bb8 = "0.7"
 chrono = "0.4"
 clap = { version = "3", features = ["derive"] }
 clap_mangen = "0.1.11"
-clap_complete = "3.2.4"
+clap_complete = "4.0.3"
 dirs = "4"
 edit = "0.1"
 failure = "0.1"
