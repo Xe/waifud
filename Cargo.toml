@@ -22,7 +22,7 @@ axum-extra = "0.3"
 bb8 = "0.7"
 chrono = "0.4"
 clap = { version = "3", features = ["derive"] }
-clap_mangen = "0.1.11"
+clap_mangen = "0.2.6"
 clap_complete = "3.2.4"
 dirs = "4"
 edit = "0.1"
