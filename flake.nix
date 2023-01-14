@@ -4,20 +4,30 @@
     naersk.inputs.nixpkgs.follows = "nixpkgs";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     utils.url = "github:numtide/flake-utils";
+
     xess = {
       url = "github:Xe/Xess";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.utils.follows = "utils";
     };
+
+    deno2nix = {
+      url = "github:Xe/deno2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "utils";
+    };
   };
 
-  outputs = { self, nixpkgs, utils, naersk, xess }:
+  outputs = { self, nixpkgs, utils, naersk, xess, deno2nix, ... }@inputs:
     utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs { inherit system; };
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ deno2nix.overlays.default ];
+        };
         naersk-lib = pkgs.callPackage naersk { };
       in rec {
-        packages = {
+        packages = rec {
           unique-monster = pkgs.stdenv.mkDerivation {
             src = self.packages."${system}".waifud;
             pname = "unique-monster";
@@ -40,29 +50,31 @@
             ];
           };
 
-          waifud-frontend = pkgs.stdenv.mkDerivation {
-            src = ./frontend;
-            buildInputs = with pkgs; [ deno nodePackages.uglify-js nodePackages.clean-css-cli ];
-            pname = "waifud-frontend";
-            version = self.packages."${system}".waifud-bin.version;
-            phases = "installPhase";
-            installPhase = ''
-              mkdir -p $out/static/{css,js}
-              mkdir -p .deno
-              export HOME=./.deno
+          waifud-frontend = let
+            build = { entrypoint, name ? entrypoint, minify ? true }:
+              pkgs.deno2nix.mkBundled {
+                pname = "xesite-frontend-${name}";
+                inherit (waifud-bin) version;
 
-              deno bundle --config $src/deno.json $src/instance_create.tsx ./instance_create.js
-              deno bundle --config $src/deno.json $src/instance_detail.tsx ./instance_detail.js
+                src = ./frontend;
+                lockfile = ./frontend/deno.lock;
 
-              uglifyjs ./instance_create.js -c -m > $out/static/js/instance_create.js
-              uglifyjs ./instance_detail.js -c -m > $out/static/js/instance_detail.js
+                output = "${entrypoint}.js";
+                outPath = "static/js";
+                entrypoint = "./${entrypoint}.tsx";
+                importMap = "./import_map.json";
+                inherit minify;
+              };
 
-              cleancss -o $out/static/xess.css $src/css/src/xess.css $src/css/src/admin.css
-            '';
+            instance_detail = build { entrypoint = "instance_detail"; };
+            instance_create = build { entrypoint = "instance_create"; };
+          in pkgs.symlinkJoin {
+            name = "waifud-frontend-${waifud-bin.version}";
+            paths = [ instance_detail instance_create ];
           };
 
           waifud = pkgs.symlinkJoin {
-            name = "waifud-${self.packages."${system}".waifud-bin.version}";
+            name = "waifud-${waifud-bin.version}";
             paths = with self.packages."${system}"; [
               waifud-bin
               waifud-frontend
@@ -168,8 +180,9 @@
                       Restart = "always";
                       WorkingDirectory = "${self.packages."${system}".waifud}";
                       RestartSec = "30s";
-                      ExecStart =
-                        "${self.packages."${system}".waifud}/bin/waifud --config ${cfgDhall}";
+                      ExecStart = "${
+                          self.packages."${system}".waifud
+                        }/bin/waifud --config ${cfgDhall}";
                     };
                   };
                 };
