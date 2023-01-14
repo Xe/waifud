@@ -1,17 +1,17 @@
 use crate::Error;
 use async_trait::async_trait;
-use axum::extract::{FromRequest, RequestParts};
+use axum::{extract::FromRequestParts, http::request::Parts, RequestPartsExt};
 
 pub struct Tailauth(pub ts_localapi::User, pub ts_localapi::WhoisPeer);
 
 #[async_trait]
-impl<B> FromRequest<B> for Tailauth
+impl<S> FromRequestParts<S> for Tailauth
 where
-    B: Send,
+    S: Send + Sync,
 {
     type Rejection = Error;
 
-    async fn from_request(req: &mut RequestParts<B>) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(req: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         let addr: axum_client_ip::ClientIp =
             req.extract().await.map_err(|_| Error::BadMiddlewareStack)?;
 

@@ -9,8 +9,8 @@ use std::sync::Arc;
 #[instrument(err)]
 pub async fn create(
     Extension(state): Extension<Arc<State>>,
-    Json(distro): Json<Distro>,
     _: Tailauth,
+    Json(distro): Json<Distro>,
 ) -> Result<Json<Distro>> {
     let conn = state.pool.get().await?;
 
@@ -52,8 +52,8 @@ pub async fn create(
 pub async fn update(
     Path(name): Path<String>,
     Extension(state): Extension<Arc<State>>,
-    Json(distro): Json<Distro>,
     _: Tailauth,
+    Json(distro): Json<Distro>,
 ) -> Result<Json<Distro>> {
     let conn = state.pool.get().await?;
 

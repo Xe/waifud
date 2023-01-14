@@ -330,12 +330,11 @@ pub async fn list(
 }
 
 #[instrument(err)]
-#[axum_macros::debug_handler]
 pub async fn create(
-    Json(details): Json<NewInstance>,
     Extension(state): Extension<Arc<State>>,
     Extension(config): Extension<Arc<Config>>,
     _: Tailauth,
+    Json(details): Json<NewInstance>,
 ) -> Result<Json<Instance>, Error> {
     let id = Uuid::new_v4();
 

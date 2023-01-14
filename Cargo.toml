@@ -15,10 +15,10 @@ lto = true
 [dependencies]
 anyhow = "1"
 async-trait = "0.1.43"
-axum = "0.5"
-axum-client-ip = "0.2.0"
-axum-macros = "0.2"
-axum-extra = "0.3"
+axum = "0.6"
+axum-client-ip = "0.3"
+axum-macros = "0.3"
+axum-extra = { version = "0.4", features = ["spa"] }
 bb8 = "0.7"
 chrono = "0.4"
 clap = { version = "4", features = ["derive"] }
@@ -48,7 +48,7 @@ tracing-subscriber = "0.3"
 url = "2"
 
 bb8-rusqlite = { git = "https://github.com/pleshevskiy/bb8-rusqlite", branch = "bump-rusqlite" }
-maud = { git = "https://github.com/Xe/maud", rev = "28b43369a3fc2bd7165e92efe410f335ffd7faad", features = ["axum-core", "axum"] }
+maud = { git = "https://github.com/Xe/maud", rev = "a40596c42c7603cc4610bbeddea04c4bd8b312d9", features = ["axum-core", "axum"] }
 virt = { git = "https://gitlab.com/libvirt/libvirt-rust.git", rev = "10456b6e59ec73e8ef418cf0a29a9bf33be8ded6" }
 
 rotbart = { path = "./lib/rotbart" }

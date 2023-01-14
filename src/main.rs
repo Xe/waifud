@@ -2,13 +2,13 @@
 extern crate tracing;
 
 use axum::{
-    routing::{delete, get, get_service, post},
+    routing::{delete, get, post},
     Extension, Router,
 };
-use hyper::StatusCode;
-use std::{io, net::SocketAddr, sync::Arc};
+use axum_extra::routing::SpaRouter;
+use std::{net::SocketAddr, sync::Arc};
 use tower::limit::ConcurrencyLimitLayer;
-use tower_http::{services::ServeDir, trace::TraceLayer};
+use tower_http::trace::TraceLayer;
 use waifud::{
     admin,
     api::{self, audit, cloudinit, distros, instances},
@@ -22,6 +22,8 @@ async fn main() -> Result {
     waifud::migrate::run()?;
 
     let cfg: Config = serde_dhall::from_file("./config.dhall").parse()?;
+
+    let files = SpaRouter::new("/static", "static");
 
     let middleware = tower::ServiceBuilder::new()
         .layer(TraceLayer::new_for_http())
@@ -41,7 +43,14 @@ async fn main() -> Result {
         .route("/instances", get(admin::instances))
         .route("/instances/create", get(admin::instance_create))
         .route("/instances/:id", get(admin::instance))
-        .route("/distros", get(admin::distro_list));
+        .route("/distros", get(admin::distro_list))
+        .layer(middleware.clone());
+
+    let cloudinit = Router::new()
+        .route("/:id/meta-data", get(cloudinit::meta_data))
+        .route("/:id/user-data", get(cloudinit::user_data))
+        .route("/:id/vendor-data", get(cloudinit::vendor_data))
+        .layer(middleware.clone());
 
     let api = Router::new()
         .route("/auditlogs", get(audit::list))
@@ -67,23 +76,9 @@ async fn main() -> Result {
 
     let app = Router::new()
         .nest("/api/v1", api)
+        .nest("/api/cloudinit", cloudinit)
         .nest("/admin", admin_panel)
-        .route("/api/cloudinit/:id/meta-data", get(cloudinit::meta_data))
-        .route("/api/cloudinit/:id/user-data", get(cloudinit::user_data))
-        .route(
-            "/api/cloudinit/:id/vendor-data",
-            get(cloudinit::vendor_data),
-        )
-        .nest(
-            "/static",
-            get_service(ServeDir::new("./static")).handle_error(|err: io::Error| async move {
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    format!("unhandled internal server error: {}", err),
-                )
-            }),
-        )
-        .layer(middleware);
+        .merge(files);
 
     // tokio::spawn(waifud::scrape::cron());
 
