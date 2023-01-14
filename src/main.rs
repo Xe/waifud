@@ -14,7 +14,6 @@ use waifud::{
     api::{self, audit, cloudinit, distros, instances},
     Config, Result, State,
 };
-use yubico::config::Config as YKConfig;
 
 #[tokio::main]
 async fn main() -> Result {
@@ -23,10 +22,6 @@ async fn main() -> Result {
     waifud::migrate::run()?;
 
     let cfg: Config = serde_dhall::from_file("./config.dhall").parse()?;
-
-    let yk: YKConfig = YKConfig::default()
-        .set_client_id(cfg.yubikey.client_id.clone())
-        .set_key(cfg.yubikey.key.clone());
 
     let middleware = tower::ServiceBuilder::new()
         .layer(TraceLayer::new_for_http())
@@ -37,8 +32,7 @@ async fn main() -> Result {
             cfg.tailscale.tailnet.clone(),
         )?)))
         .layer(Extension(Arc::new(State::new().await?)))
-        .layer(Extension(Arc::new(cfg)))
-        .layer(Extension(Arc::new(yk)));
+        .layer(Extension(Arc::new(cfg)));
 
     let admin_panel = Router::new()
         .route("/", get(admin::home))

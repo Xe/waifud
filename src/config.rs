@@ -15,8 +15,6 @@ pub struct Config {
     pub qemu_path: String,
     #[serde(skip_serializing)]
     pub tailscale: Tailscale,
-    #[serde(skip_serializing)]
-    pub yubikey: Yubikey,
 }
 
 impl fmt::Debug for Config {
@@ -30,11 +28,4 @@ pub struct Tailscale {
     #[serde(rename = "apiKey")]
     pub api_key: String,
     pub tailnet: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Yubikey {
-    #[serde(rename = "clientID")]
-    pub client_id: String,
-    pub key: String,
 }

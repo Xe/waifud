@@ -6,12 +6,6 @@ let Tailscale =
         }
       }
 
-let Yubikey =
-      { Type = { clientID : Text, key : Text }
-      , default =
-        { clientID = env:YUBIKEY_CLIENT_ID ? "", key = env:YUBIKEY_KEY ? "" }
-      }
-
 let Config =
       { Type =
           { baseURL : Text
@@ -21,7 +15,6 @@ let Config =
           , rpoolBase : Text
           , qemuPath : Text
           , tailscale : Tailscale.Type
-          , yubikey : Yubikey.Type
           }
       , default =
         { baseURL = "http://100.100.100.100:23818"
@@ -31,7 +24,6 @@ let Config =
         , rpoolBase = "rpool/local/vms"
         , qemuPath = "/run/libvirt/nix-emulators/qemu-system-x86_64"
         , tailscale = Tailscale::{=}
-        , yubikey = Yubikey::{=}
         }
       }
 
