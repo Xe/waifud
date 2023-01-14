@@ -32,7 +32,7 @@ use waifud::{
 /// waifuctl lets you manage VM instances on waifud.
 struct Opt {
     /// waifud host to connect to, formatted as a http/https URL
-    #[clap(short, long)]
+    #[clap(short = 'H', long)]
     pub host: Option<String>,
 
     #[clap(subcommand)]
@@ -584,7 +584,7 @@ fn utils_gen_manpage(path: PathBuf) -> Result {
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
 
-    let mut opt = Opt::from_args();
+    let mut opt = Opt::parse();
 
     let cfg = {
         let mut fname = dirs::config_dir().unwrap();

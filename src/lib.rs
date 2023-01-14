@@ -105,9 +105,6 @@ pub enum Error {
     #[error("hex decode error: {0}")]
     Hex(#[from] hex::FromHexError),
 
-    #[error("yubikey OTP error: {0}")]
-    Yubico(#[from] yubico::yubicoerror::YubicoError),
-
     #[error("tailscaled localapi error: {0}")]
     TailscaledLocalAPI(#[from] ts_localapi::Error),
 
