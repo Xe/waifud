@@ -137,42 +137,11 @@
 
               config = {
                 systemd.services = {
-                  waifud-ssh-agent = {
-                    wantedBy = [ "multi-user.target" ];
-                    serviceConfig = {
-                      User = "waifud";
-                      Group = "waifud";
-                      Restart = "always";
-                      WorkingDirectory = "/var/lib/waifud";
-                      ExecStart =
-                        "${pkgs.openssh}/bin/ssh-agent -D -a /var/lib/waifud/agent.sock";
-                    };
-                  };
-
-                  waifud-ssh-loadkey = {
-                    wantedBy = [ "multi-user.target" ];
-                    after = [ "waifud-ssh-agent" ];
-
-                    environment.SSH_AUTH_SOCK = "/var/lib/waifud/agent.sock";
-                    unitConfig.ConditionPathExists =
-                      "/var/lib/waifud/id_ed25519";
-                    serviceConfig = {
-                      User = "waifud";
-                      Group = "waifud";
-                      Restart = "always";
-                      WorkingDirectory = "/var/lib/waifud";
-                      ExecStart =
-                        "${pkgs.openssh}/bin/ssh-add /var/lib/waifud/id_ed25519";
-                    };
-                  };
-
                   waifud = {
                     wantedBy = [ "multi-user.target" ];
-                    after = [ "waifud-ssh-agent" ];
 
                     environment = {
                       RUST_LOG = "tower_http=debug,waifud=debug,info";
-                      SSH_AUTH_SOCK = "/var/lib/waifud/agent.sock";
                     };
                     serviceConfig = {
                       User = "waifud";
@@ -180,9 +149,7 @@
                       Restart = "always";
                       WorkingDirectory = "${self.packages."${system}".waifud}";
                       RestartSec = "30s";
-                      ExecStart = "${
-                          self.packages."${system}".waifud
-                        }/bin/waifud --config ${cfgDhall}";
+                      ExecStart = "${waifud}/bin/waifud --config ${cfgDhall}";
                     };
                   };
                 };
