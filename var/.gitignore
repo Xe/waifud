@@ -1,1 +1,4 @@
 *.db*
+files
+*.pubkey
+*.privkey
