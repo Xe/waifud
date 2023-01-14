@@ -1,0 +1,31 @@
+arch: null
+environment: null
+image: archlinux
+packages:
+- go
+repositories: null
+secrets: null
+sources:
+- https://git.sr.ht/~rbn/neinp
+tasks:
+- vet: 'cd neinp
+
+    go vet'
+- lint: 'go get -u golang.org/x/lint/golint
+
+    cd neinp
+
+    ~/go/bin/golint'
+- test: 'cd neinp
+
+    go test -v -coverprofile=cover.out ./...
+
+    go tool cover -func=cover.out'
+- xbuild: 'cd neinp
+
+    sh xbuild.sh' 
+triggers:
+- action: email
+  condition: failure
+  to: code@rbn.im
+
