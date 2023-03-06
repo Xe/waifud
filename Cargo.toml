@@ -14,7 +14,7 @@ lto = true
 
 [dependencies]
 anyhow = "1"
-async-trait = "0.1.43"
+async-trait = "0.1.66"
 axum = "0.6"
 axum-client-ip = "0.3"
 axum-macros = "0.3"
