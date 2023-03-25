@@ -1,6 +1,8 @@
+@import url("https://cdn.xeiaso.net/static/css/iosevka/family.css");
+
 main {
-  font-family: monospace, monospace;
-  max-width: 38rem;
+  font-family: Iosevka Aile Iaso, sans-serif;
+  max-width: 50rem;
   padding: 2rem;
   margin: auto;
 }
@@ -24,6 +26,7 @@ pre {
   background-color: #3c3836;
   padding: 1em;
   border: 0;
+  font-family: Iosevka Curly Iaso, monospace;
 }
 
 a, a:active, a:visited {
@@ -32,7 +35,8 @@ a, a:active, a:visited {
 }
 
 h1, h2, h3, h4, h5 {
-  margin-bottom: .1rem;
+    margin-bottom: .1rem;
+    font-family: Iosevka Etoile Iaso, serif;
 }
 
 blockquote {

@@ -135,7 +135,7 @@ struct CreateOpts {
     cpus: i32,
 
     /// Host to put the VM on
-    #[clap(short, long)]
+    #[clap(short = 'H', long)]
     host: String,
 
     /// Disk size in GB, leave blank to use distribution default
