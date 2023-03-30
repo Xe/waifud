@@ -233,6 +233,11 @@
               jq
               jo
               deno
+              go
+              gotools
+              go-tools
+              gopls
+              nbd
             ];
             DATABASE_URL = "./var/waifud.db";
             RUST_LOG = "tower_http=trace,debug";
