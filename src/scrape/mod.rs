@@ -7,6 +7,7 @@ use tokio::time::Instant;
 
 pub mod amazon_linux;
 pub mod arch;
+pub mod nixos;
 pub mod rocky_linux;
 pub mod ubuntu;
 
@@ -17,10 +18,18 @@ pub async fn get_all() -> Result<Vec<Distro>> {
         ubuntu::scrape(("18.04", "bionic")),
     ])
     .await;
-    let mut result: Vec<Distro> = vec![arch::scrape().await?, amazon_linux::scrape().await?];
+    let mut result: Vec<Distro> = vec![
+        arch::scrape().await?,
+        amazon_linux::scrape().await?,
+        rocky_linux::scrape(9).await?,
+    ];
 
     for distro in ubuntus {
         result.push(distro?);
+    }
+
+    for distro in nixos::scrape().await? {
+        result.push(distro);
     }
 
     Ok(result)
