@@ -189,12 +189,13 @@ dependencies = [
 
 [[package]]
 name = "axum-client-ip"
-version = "0.3.1"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ddfb5a3ddd6367075d50629546fb46710584016ae7704cd03b6d41cb5be82e5a"
+checksum = "df8e81eacc93f36480825da5f46a33b5fb2246ed024eacc9e8933425b80c5807"
 dependencies = [
  "axum",
  "forwarded-header-value",
+ "serde",
 ]
 
 [[package]]

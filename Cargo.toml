@@ -16,7 +16,7 @@ lto = true
 anyhow = "1"
 async-trait = "0.1.68"
 axum = "0.6"
-axum-client-ip = "0.3"
+axum-client-ip = "0.4"
 axum-macros = "0.3"
 axum-extra = { version = "0.5", features = ["spa"] }
 bb8 = "0.7"
