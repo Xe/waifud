@@ -18,7 +18,7 @@ async-trait = "0.1.68"
 axum = "0.6"
 axum-client-ip = "0.3"
 axum-macros = "0.3"
-axum-extra = { version = "0.4", features = ["spa"] }
+axum-extra = { version = "0.5", features = ["spa"] }
 bb8 = "0.7"
 chrono = "0.4"
 clap = { version = "4", features = ["derive"] }
