@@ -38,6 +38,7 @@ pub async fn scrape(version: i32) -> crate::Result<crate::models::Distro> {
         .rev()
         .filter(|elem| elem.value().attr("href").is_some())
         .map(|elem| elem.value().attr("href").unwrap())
+        .filter(|link| link.contains("GenericCloud"))
         .filter(|link| link.contains("x86_64"))
         .filter(|link| !link.contains("latest"))
         .filter(|link| link.ends_with(".qcow2"))

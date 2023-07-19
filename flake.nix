@@ -233,6 +233,7 @@
               jq
               jo
               deno
+              strace
             ];
             DATABASE_URL = "./var/waifud.db";
             RUST_LOG = "tower_http=trace,debug";
