@@ -24,7 +24,7 @@ chrono = "0.4"
 clap = { version = "4", features = ["derive"] }
 clap_mangen = "0.2"
 clap_complete = "4"
-dirs = "4"
+dirs = "5"
 edit = "0.1"
 failure = "0.1"
 futures = "0.3"
