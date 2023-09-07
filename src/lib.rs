@@ -169,7 +169,7 @@ impl Into<(StatusCode, String)> for Error {
                 StatusCode::UNAUTHORIZED,
                 "you lack authorization".to_string(),
             ),
-            Error::Libvirt(why) => (StatusCode::INTERNAL_SERVER_ERROR, why.message),
+            Error::Libvirt(why) => (StatusCode::INTERNAL_SERVER_ERROR, why.message().to_string()),
             Error::Dhall(why) => (StatusCode::BAD_REQUEST, format!("{}", why)),
             Error::SQLite(err) => match err {
                 rusqlite::Error::QueryReturnedNoRows => {

@@ -113,7 +113,7 @@ pub async fn delete(
             let dom = Domain::lookup_by_uuid_string(&conn, &id.to_string())?;
 
             dom.destroy()?;
-            dom.undefine()?;
+            dom.undefine_flags(virt::sys::VIR_DOMAIN_UNDEFINE_NVRAM)?;
             Ok(())
         })
         .await?

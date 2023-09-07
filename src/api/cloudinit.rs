@@ -12,16 +12,6 @@ pub async fn user_data(
 ) -> Result<String, Error> {
     let conn = state.pool.get().await?;
 
-    conn.execute(
-        "UPDATE instances SET status = ?1 WHERE uuid = ?2",
-        params!["running", id],
-    )?;
-    let ins = Instance::from_uuid(&conn, id)?;
-    conn.execute(
-        "INSERT INTO audit_logs(kind, op, data) VALUES (?1, ?2, ?3)",
-        params!["instance", "running", serde_json::to_string(&ins)?],
-    )?;
-
     Ok(conn.query_row(
         "SELECT user_data FROM cloudconfig_seeds WHERE uuid = ?1",
         params![id],
@@ -40,6 +30,16 @@ pub async fn meta_data(
         "SELECT name FROM instances WHERE uuid = ?1",
         params![id],
         |row| row.get(0),
+    )?;
+    
+    conn.execute(
+        "UPDATE instances SET status = ?1 WHERE uuid = ?2",
+        params!["running", id],
+    )?;
+    let ins = Instance::from_uuid(&conn, id)?;
+    conn.execute(
+        "INSERT INTO audit_logs(kind, op, data) VALUES (?1, ?2, ?3)",
+        params!["instance", "running", serde_json::to_string(&ins)?],
     )?;
 
     Ok(format!(

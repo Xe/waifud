@@ -21,7 +21,7 @@ impl TryFrom<Domain> for Machine {
     fn try_from(dom: Domain) -> Result<Self, Self::Error> {
         let addr: Option<String> = if dom.is_active()? {
             let mut addr: Vec<String> = dom
-                .interface_addresses(virt::domain::VIR_DOMAIN_INTERFACE_ADDRESSES_SRC_LEASE, 0)?
+                .interface_addresses(virt_sys::VIR_DOMAIN_INTERFACE_ADDRESSES_SRC_LEASE, 0)?
                 .into_iter()
                 .map(|iface| iface.addrs.clone())
                 .filter(|addrs| addrs.get(0).is_some())
